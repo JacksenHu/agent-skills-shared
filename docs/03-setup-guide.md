@@ -9,6 +9,21 @@
 
 ## 1. 准备配置文件
 
+**方式 A（推荐）· 交互式引导**，无需手写 JSON：
+
+```powershell
+.\scripts\setup-wizard.ps1
+```
+
+流程：脚本自动探测本机常见 Agent 技能目录（Doubao / Claude Code / Codex / Cursor…，
+已检测到的会标注）→ 按提示输入编号勾选要接入的 Agent（可自定义添加其他路径）→
+选择共享库位置（默认 `%USERPROFILE%\skills\shared`）→ 确认后自动完成
+「生成 `config\agents.json` → 搭建 → 验证」三步。
+
+若 `config\agents.json` 已存在，脚本会询问是否直接沿用现有配置。
+
+**方式 B · 手动编辑 JSON：**
+
 ```powershell
 # 复制模板
 copy config\agents.example.json config\agents.json

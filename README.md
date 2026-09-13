@@ -38,6 +38,17 @@
 
 ## 快速开始
 
+**方式 A（推荐）· 交互式引导，全程只需选择：**
+
+```powershell
+.\scripts\setup-wizard.ps1
+```
+
+脚本自动探测本机已安装的 Agent 技能目录 → 按菜单勾选要接入的 Agent → 回车确认，
+自动完成：生成配置 → 迁移已有技能 → 建立联接 → 验证，无需手写任何 JSON。
+
+**方式 B · 手动配置：**
+
 ```powershell
 # 1. 复制配置模板并填写你的 Agent 路径
 copy config\agents.example.json config\agents.json
@@ -79,10 +90,11 @@ agent-skills-shared/
 ├── config/
 │   └── agents.example.json        # Agent 路径配置模板
 └── scripts/
-    ├── setup.ps1                  # 一键搭建：迁移 + 建联接 + 验证
-    ├── add-agent.ps1              # 为单个 Agent 建立联接
-    ├── remove-agent.ps1           # 移除单个 Agent 的联接（回滚）
-    └── verify.ps1                 # 验证所有联接与技能可见性
+    ├── setup-wizard.ps1            # 交互式引导：按菜单选择即可完成配置、搭建与验证
+    ├── setup.ps1                   # 一键搭建：迁移 + 建联接 + 验证
+    ├── add-agent.ps1               # 为单个 Agent 建立联接
+    ├── remove-agent.ps1            # 移除单个 Agent 的联接（回滚）
+    └── verify.ps1                  # 验证所有联接与技能可见性
 ```
 
 ## 文档导航
