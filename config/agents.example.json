@@ -2,8 +2,15 @@
   "sharedRoot": "C:\\Users\\<你的用户名>\\skills\\shared",
   "agents": {
     "doubao-user-skills": "C:\\Users\\<你的用户名>\\AppData\\Local\\Doubao\\User Data\\Default\\.doubao\\agent_mode\\workspace\\.user_skills",
+    "doubao-extra": "C:\\Users\\<你的用户名>\\Doubao\\skills",
     "claude-code": "C:\\Users\\<你的用户名>\\.claude\\skills",
     "codex-agents-skills": "C:\\Users\\<你的用户名>\\.agents\\skills",
-    "cursor": "C:\\Users\\<你的用户名>\\.cursor\\skills"
+    "codex-legacy": "C:\\Users\\<你的用户名>\\.codex\\skills",
+    "cursor": "C:\\Users\\<你的用户名>\\.cursor\\skills",
+    "windsurf": "C:\\Users\\<你的用户名>\\.codeium\\windsurf\\skills",
+    "openclaw": "C:\\Users\\<你的用户名>\\.openclaw\\workspace\\skills",
+    "trae": "C:\\Users\\<你的用户名>\\.trae\\skills",
+    "trae-cn": "C:\\Users\\<你的用户名>\\.trae-cn\\skills",
+    "copilot": "C:\\Users\\<你的用户名>\\.copilot\\skills"
   }
 }

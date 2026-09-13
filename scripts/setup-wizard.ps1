@@ -12,6 +12,10 @@
     [5] 帮助与文档
     [0] 退出
 
+  快速搭建内置 11 个常见 Agent 技能路径预设（Doubao、Claude Code、Codex、
+  Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，
+  均来自官方文档），自动探测本机状态，输入 d 一键全选已检测到的。
+
 .EXAMPLE
   .\scripts\setup-wizard.ps1          # 启动交互控制台
 #>
@@ -48,11 +52,15 @@ function Read-YesNo {
 }
 
 function Read-ChoiceList {
-    param([int]$Count, [string]$Prompt)
+    param([int]$Count, [string]$Prompt, [bool[]]$Detected)
     while ($true) {
         $raw = (Read-Host $Prompt).Trim().ToLower()
         if ($raw -eq '' -or $raw -eq 'q') { return @() }
         if ($raw -eq 'a') { return @(1..$Count) }
+        if ($raw -eq 'd') {
+            # 一键全选"已检测到"的条目
+            return @(0..($Count - 1) | Where-Object { $Detected[$_] } | ForEach-Object { $_ + 1 })
+        }
         $sel = @()
         $valid = $true
         foreach ($part in ($raw -split ',')) {
@@ -63,7 +71,7 @@ function Read-ChoiceList {
             $sel += $n
         }
         if ($valid -and $sel.Count -gt 0) { return @($sel | Sort-Object -Unique) }
-        Write-Warn "输入无效，请输入 1-$Count 的编号（逗号分隔多选）、a 或 q。"
+        Write-Warn "输入无效，请输入 1-$Count 的编号（逗号分隔多选）、d=全选已检测到、a=全部或 q。"
     }
 }
 
@@ -181,21 +189,31 @@ function Invoke-SetupFlow {
         $in = (Read-Host '  回车使用默认，或输入其他路径').Trim()
         $sharedRoot = if ($in) { [IO.Path]::GetFullPath($in) } else { $defaultShared }
 
-        Write-Info '[2/3] 选择要接入的 Agent（已自动探测以下目录）'
+        Write-Info '[2/3] 选择要接入的 Agent（已预设常见 Agent 路径，自动探测本机状态）'
         $detectors = @(
             @{ Key = 'doubao-user-skills'; Label = 'Doubao（豆包）用户技能'; Path = (Join-Path $env:LOCALAPPDATA 'Doubao\User Data\Default\.doubao\agent_mode\workspace\.user_skills') },
+            @{ Key = 'doubao-extra';        Label = 'Doubao（豆包）其他技能根'; Path = (Join-Path $env:USERPROFILE 'Doubao\skills') },
             @{ Key = 'claude-code';         Label = 'Claude Code';             Path = (Join-Path $env:USERPROFILE '.claude\skills') },
-            @{ Key = 'codex-agents-skills'; Label = 'Codex / Cursor（.agents）'; Path = (Join-Path $env:USERPROFILE '.agents\skills') },
-            @{ Key = 'cursor';              Label = 'Cursor（.cursor）';        Path = (Join-Path $env:USERPROFILE '.cursor\skills') }
+            @{ Key = 'codex-agents-skills'; Label = 'Codex / Cursor / Zed / Copilot（.agents 通用）'; Path = (Join-Path $env:USERPROFILE '.agents\skills') },
+            @{ Key = 'codex-legacy';        Label = 'Codex 旧版';              Path = (Join-Path $env:USERPROFILE '.codex\skills') },
+            @{ Key = 'cursor';              Label = 'Cursor（独立目录）';      Path = (Join-Path $env:USERPROFILE '.cursor\skills') },
+            @{ Key = 'windsurf';            Label = 'Windsurf';                Path = (Join-Path $env:USERPROFILE '.codeium\windsurf\skills') },
+            @{ Key = 'openclaw';            Label = 'OpenClaw';                Path = (Join-Path $env:USERPROFILE '.openclaw\workspace\skills') },
+            @{ Key = 'trae';                Label = 'Trae（国际版）';          Path = (Join-Path $env:USERPROFILE '.trae\skills') },
+            @{ Key = 'trae-cn';             Label = 'Trae CN（国内版）';       Path = (Join-Path $env:USERPROFILE '.trae-cn\skills') },
+            @{ Key = 'copilot';             Label = 'GitHub Copilot';          Path = (Join-Path $env:USERPROFILE '.copilot\skills') }
         )
         $choices = @()
+        $detectedFlags = @()
         for ($i = 0; $i -lt $detectors.Count; $i++) {
             $d = $detectors[$i]
-            $mark = if (Test-Path $d.Path) { '已检测到' } else { '未找到' }
-            Write-Host ("  [{0}] {1,-26} {2,-10} {3}" -f ($i + 1), $d.Label, $mark, $d.Path)
+            $exists = Test-Path $d.Path
+            $mark = if ($exists) { '✅ 已检测到' } else { '　未找到　' }
+            Write-Host ("  [{0}] {1,-40} {2}  {3}" -f ($i + 1), $d.Label, $mark, $d.Path)
             $choices += [pscustomobject]@{ Key = $d.Key; Path = $d.Path }
+            $detectedFlags += $exists
         }
-        $sel = Read-ChoiceList $choices.Count '  输入编号接入（逗号分隔多选，a=全部，q=跳过）'
+        $sel = Read-ChoiceList $choices.Count '  输入编号接入（逗号分隔多选，d=全选已检测到，a=全部，q=跳过）' $detectedFlags
 
         $agentList = @()
         foreach ($n in $sel) {
