@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 扫描各 Agent 技能目录，检测"已安装但未进共享库"的技能

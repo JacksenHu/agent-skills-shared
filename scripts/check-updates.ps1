@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   检测共享库中「从 GitHub 仓库安装」的技能是否有新版本

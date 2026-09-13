@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 从 GitHub / skills.sh 一键安装技能到共享库
