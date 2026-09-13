@@ -24,6 +24,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# 加载「同一 Agent 多技能根」重复加载防护（setup / add-agent / verify 共用）
+. (Join-Path $PSScriptRoot 'lib\duplicate-guard.ps1')
+
 # ---------- 工具：比较两个目录内容是否完全一致（相对路径 + 文件哈希） ----------
 function Test-DirSame {
     param([string]$PathA, [string]$PathB)
@@ -49,6 +52,28 @@ $sharedRoot = [IO.Path]::GetFullPath($SharedRoot)
 Write-Host "接入 Agent: $AgentName" -ForegroundColor Cyan
 Write-Host "根目录:   $root" -ForegroundColor Cyan
 Write-Host "共享库:   $sharedRoot" -ForegroundColor Cyan
+
+# ---------- 预检：同一 Agent 多技能根 → 重复加载防护 ----------
+# 新目录若与该软件已有的技能根（含 config\agents.json 中已接入的）构成同源多根，
+# 接入共享库会导致技能重复加载。默认取消，避免重复发生。
+$knownPaths = @()
+$cfgPath = Join-Path $PSScriptRoot '..\config\agents.json'
+if (Test-Path $cfgPath) {
+    try {
+        $cfg = Get-Content $cfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($cfg.agents) {
+            $knownPaths += @($cfg.agents.PSObject.Properties | ForEach-Object { [IO.Path]::GetFullPath([string]$_.Value) })
+        }
+    } catch { }
+}
+$knownPaths += $root
+$conflicts = Get-SameSourceConflicts @($knownPaths | Select-Object -Unique)
+if ($WhatIfPreference) {
+    Show-ConflictWarning $conflicts | Out-Null
+} elseif (-not (Show-ConflictWarning $conflicts -Ask)) {
+    Write-Host '已取消：新目录与该软件已有的技能根构成重复加载，请只保留一个入口（其余用 remove-agent.ps1 拆除）。' -ForegroundColor Yellow
+    exit 1
+}
 
 # 共享库不存在时创建
 if (-not (Test-Path $sharedRoot)) {
