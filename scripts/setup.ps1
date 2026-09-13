@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 一键搭建：统一技能库 + 目录联接（Junction）

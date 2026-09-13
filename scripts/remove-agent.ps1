@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 移除单个 Agent：拆除其技能根目录的联接（回滚）

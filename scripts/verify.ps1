@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 验证：检查所有 Agent 的联接与技能可见性
