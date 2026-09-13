@@ -1,0 +1,6 @@
+# 本机配置文件（含个人路径），不入库
+config/agents.json
+
+# 运行产生的临时/报告文件
+*.log
+.reports/

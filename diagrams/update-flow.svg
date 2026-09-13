@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 680" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+  <title>日常使用流程</title>
+  <desc>所有技能操作都在共享技能库进行，Agent 自动跟随</desc>
+  <rect x="0" y="0" width="1240" height="680" fill="#F8FAFC"/>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563EB"/>
+    </marker>
+  </defs>
+
+  <text x="620" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">日常使用：一切操作都发生在共享技能库</text>
+  <text x="620" y="62" text-anchor="middle" font-size="13" fill="#64748B">不要在单个 Agent 目录里直接改技能 —— 那里只是「门」，数据在共享库</text>
+
+  <rect x="470" y="250" width="300" height="160" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+  <text x="620" y="292" text-anchor="middle" font-size="17" font-weight="700" fill="#1D4ED8">共享技能库</text>
+  <text x="620" y="322" text-anchor="middle" font-size="11" fill="#64748B" font-family="Consolas, monospace">C:\Users\24664\skills\shared</text>
+  <text x="620" y="356" text-anchor="middle" font-size="12" fill="#1E40AF">唯一数据源 · 所有 Agent 的『门』都指向这里</text>
+  <text x="620" y="380" text-anchor="middle" font-size="11" fill="#64748B">改这里 = 改全部</text>
+
+  <rect x="60" y="80" width="300" height="120" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text x="210" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="#0F172A">➕ 新增技能</text>
+  <text x="210" y="142" text-anchor="middle" font-size="11" fill="#475569">Copy 技能目录 → 共享库</text>
+  <text x="210" y="162" text-anchor="middle" font-size="11" fill="#475569">重启会话后</text>
+  <text x="210" y="180" text-anchor="middle" font-size="11" fill="#047857">所有 Agent 同时可见 ✅</text>
+
+  <rect x="880" y="80" width="300" height="120" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text x="1030" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="#0F172A">🔄 更新技能</text>
+  <text x="1030" y="142" text-anchor="middle" font-size="11" fill="#475569">替换共享库中的目录</text>
+  <text x="1030" y="162" text-anchor="middle" font-size="11" fill="#475569">（先删旧目录再放新版）</text>
+  <text x="1030" y="180" text-anchor="middle" font-size="11" fill="#047857">全局同步更新 ✅</text>
+
+  <rect x="60" y="440" width="300" height="120" rx="10" fill="#FEF2F2" stroke="#FCA5A5"/>
+  <text x="210" y="472" text-anchor="middle" font-size="14" font-weight="700" fill="#B91C1C">🗑 删除技能</text>
+  <text x="210" y="502" text-anchor="middle" font-size="11" fill="#7F1D1D">Remove 共享库中目录</text>
+  <text x="210" y="522" text-anchor="middle" font-size="11" fill="#B91C1C">⚠ 所有 Agent 同时消失</text>
+  <text x="210" y="540" text-anchor="middle" font-size="11" fill="#7F1D1D">删除前务必确认</text>
+
+  <rect x="880" y="440" width="300" height="120" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text x="1030" y="472" text-anchor="middle" font-size="14" font-weight="700" fill="#0F172A">🚀 接入新 Agent</text>
+  <text x="1030" y="502" text-anchor="middle" font-size="11" fill="#475569">add-agent.ps1 -RootPath …</text>
+  <text x="1030" y="522" text-anchor="middle" font-size="11" fill="#475569">自动：迁移已有技能 → 建联接</text>
+  <text x="1030" y="540" text-anchor="middle" font-size="11" fill="#047857">一行命令接入 ✅</text>
+
+  <rect x="470" y="520" width="300" height="120" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text x="620" y="552" text-anchor="middle" font-size="14" font-weight="700" fill="#0F172A">⏏ 移除 Agent</text>
+  <text x="620" y="582" text-anchor="middle" font-size="11" fill="#475569">remove-agent.ps1 -AgentName …</text>
+  <text x="620" y="602" text-anchor="middle" font-size="11" fill="#475569">只拆『门』，共享库数据保留</text>
+  <text x="620" y="620" text-anchor="middle" font-size="11" fill="#047857">随时可重新接入 ✅</text>
+
+  <g stroke="#2563EB" stroke-width="2" fill="none">
+    <line x1="210" y1="200" x2="440" y2="282" marker-end="url(#arr)"/>
+    <line x1="1030" y1="200" x2="800" y2="282" marker-end="url(#arr)"/>
+    <line x1="210" y1="440" x2="445" y2="372" marker-end="url(#arr)"/>
+    <line x1="1030" y1="440" x2="800" y2="372" marker-end="url(#arr)"/>
+    <line x1="620" y1="520" x2="620" y2="416" marker-end="url(#arr)"/>
+  </g>
+</svg>

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 720" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+  <title>Junction 机制原理图</title>
+  <desc>Junction 是 NTFS 重解析点：入口目录只是指向共享库的门，所有入口读写同一份数据</desc>
+  <rect x="0" y="0" width="1240" height="720" fill="#F8FAFC"/>
+
+  <text x="620" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Junction 机制：一个数据源，多个入口（门）</text>
+  <text x="620" y="64" text-anchor="middle" font-size="13" fill="#64748B">Junction = NTFS 重解析点（Reparse Point）：入口目录只是『门』，数据在共享库里</text>
+
+  <!-- ============ 上层：三个路径 ============ -->
+  <g>
+    <rect x="60" y="110" width="330" height="140" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="225" y="140" text-anchor="middle" font-size="15" font-weight="700" fill="#0F172A">Agent 入口 A（门）</text>
+    <text x="225" y="168" text-anchor="middle" font-size="10" fill="#64748B" font-family="Consolas, monospace">C:\Users\24664\.claude\skills</text>
+    <rect x="150" y="188" width="150" height="28" rx="6" fill="#FEF3C7"/>
+    <text x="225" y="207" text-anchor="middle" font-size="11" fill="#B45309">Junction（重解析点）</text>
+    <text x="225" y="238" text-anchor="middle" font-size="10" fill="#64748B">用户访问的『路径』</text>
+
+    <rect x="455" y="110" width="330" height="140" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="620" y="140" text-anchor="middle" font-size="15" font-weight="700" fill="#0F172A">Agent 入口 B（门）</text>
+    <text x="620" y="168" text-anchor="middle" font-size="10" fill="#64748B" font-family="Consolas, monospace">…\Doubao\…\.user_skills</text>
+    <rect x="545" y="188" width="150" height="28" rx="6" fill="#FEF3C7"/>
+    <text x="620" y="207" text-anchor="middle" font-size="11" fill="#B45309">Junction（重解析点）</text>
+    <text x="620" y="238" text-anchor="middle" font-size="10" fill="#64748B">用户访问的『路径』</text>
+
+    <rect x="850" y="110" width="330" height="140" rx="10" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+    <text x="1015" y="140" text-anchor="middle" font-size="15" font-weight="700" fill="#065F46">共享技能库（真实目录）</text>
+    <text x="1015" y="168" text-anchor="middle" font-size="10" fill="#64748B" font-family="Consolas, monospace">C:\Users\24664\skills\shared</text>
+    <rect x="925" y="188" width="180" height="28" rx="6" fill="#D1FAE5"/>
+    <text x="1015" y="207" text-anchor="middle" font-size="11" fill="#047857">数据实际存放处</text>
+    <text x="1015" y="238" text-anchor="middle" font-size="10" fill="#64748B">NTFS 上的唯一副本</text>
+  </g>
+
+  <!-- 联接箭头：A、B 底部 → 汇合 → 进入共享库底部 -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#F59E0B"/>
+    </marker>
+  </defs>
+  <path d="M 225 250 L 225 296 L 1015 296 L 1015 254" fill="none" stroke="#F59E0B" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 620 250 L 620 320 L 1015 320 L 1015 254" fill="none" stroke="#F59E0B" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="640" y="330" font-size="12" fill="#B45309">操作系统把入口路径解析为共享库的绝对路径，读写被透明转发</text>
+
+  <!-- ============ 中层：NTFS 层 ============ -->
+  <rect x="60" y="380" width="1120" height="150" rx="12" fill="#F1F5F9" stroke="#CBD5E1" stroke-dasharray="6 4"/>
+  <text x="620" y="410" text-anchor="middle" font-size="14" font-weight="700" fill="#475569">NTFS 文件系统层</text>
+
+  <g font-size="11" fill="#64748B" font-family="Consolas, monospace">
+    <text x="80" y="452">路径 A（入口）</text>
+    <text x="80" y="476">路径 B（入口）</text>
+    <text x="80" y="500">共享库路径</text>
+  </g>
+  <text x="260" y="488" text-anchor="middle" font-size="12" fill="#475569">三个路径解析到</text>
+
+  <rect x="380" y="432" width="330" height="82" rx="8" fill="#EFF6FF" stroke="#2563EB"/>
+  <text x="545" y="464" text-anchor="middle" font-size="13" font-weight="700" fill="#1D4ED8">同一 MFT 记录</text>
+  <text x="545" y="490" text-anchor="middle" font-size="11" fill="#1E40AF">（同一份文件数据）</text>
+
+  <rect x="800" y="432" width="300" height="82" rx="8" fill="#ECFDF5" stroke="#10B981"/>
+  <text x="950" y="464" text-anchor="middle" font-size="13" font-weight="700" fill="#065F46">磁盘上的唯一副本</text>
+  <text x="950" y="490" text-anchor="middle" font-size="11" fill="#047857">读 / 写 / 新建 / 删除</text>
+  <text x="950" y="506" text-anchor="middle" font-size="11" fill="#047857">都作用于同一份数据</text>
+
+  <g stroke="#94A3B8" stroke-width="1.5" fill="none">
+    <line x1="340" y1="473" x2="372" y2="473" marker-end="url(#arrGray)"/>
+    <line x1="718" y1="473" x2="792" y2="473" marker-end="url(#arrGray)"/>
+  </g>
+  <defs>
+    <marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <!-- ============ 下层：关键语义 ============ -->
+  <text x="620" y="572" text-anchor="middle" font-size="14" font-weight="700" fill="#0F172A">关键语义（务必记住）</text>
+  <g>
+    <rect x="60" y="592" width="270" height="104" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="195" y="622" text-anchor="middle" font-size="13" font-weight="700" fill="#0F172A">读 / 写 / 新建</text>
+    <text x="195" y="650" text-anchor="middle" font-size="11" fill="#475569">穿透到共享库</text>
+    <text x="195" y="670" text-anchor="middle" font-size="11" fill="#475569">所有入口即时看到同一内容</text>
+
+    <rect x="345" y="592" width="270" height="104" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="480" y="622" text-anchor="middle" font-size="13" font-weight="700" fill="#0F172A">删除联接本身</text>
+    <text x="480" y="650" text-anchor="middle" font-size="11" fill="#475569">cmd /c rmdir（不带 /s）</text>
+    <text x="480" y="670" text-anchor="middle" font-size="11" fill="#047857">只拆『门』，数据保留 ✅</text>
+
+    <rect x="630" y="592" width="270" height="104" rx="10" fill="#FEF2F2" stroke="#FCA5A5"/>
+    <text x="765" y="622" text-anchor="middle" font-size="13" font-weight="700" fill="#B91C1C">递归删除（-Recurse）</text>
+    <text x="765" y="650" text-anchor="middle" font-size="11" fill="#7F1D1D">会穿透联接</text>
+    <text x="765" y="670" text-anchor="middle" font-size="11" fill="#B91C1C">⚠ 删除共享库真实数据</text>
+
+    <rect x="915" y="592" width="270" height="104" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="1050" y="622" text-anchor="middle" font-size="13" font-weight="700" fill="#0F172A">移动共享库目录</text>
+    <text x="1050" y="650" text-anchor="middle" font-size="11" fill="#475569">联接记录的是绝对路径</text>
+    <text x="1050" y="670" text-anchor="middle" font-size="11" fill="#B45309">移动后失效，verify 重建即可</text>
+  </g>
+</svg>

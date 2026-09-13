@@ -1,2 +1,112 @@
-# agent-skills-shared
-一套技能，所有 Agent 共用 —— Windows 目录联接（Junction）方案：统一技能目录 + 各 Agent 技能根目录联接，一次安装处处生效
+# Agent Skills 共享方案（统一目录 + 目录联接）
+
+> **一个技能，只装一次，所有 Agent 共用。**
+>
+> 用 Windows 目录联接（NTFS Junction）把每个 Agent 的技能根目录指向同一个共享技能库，
+> 解决「N 个 Agent × M 个技能 = N×M 次安装」的重复劳动问题。
+
+![架构图](diagrams/architecture.svg)
+
+## 痛点
+
+同时使用多个 Agent 软件（Doubao、Claude Code、Codex、Cursor、Windsurf、OpenClaw……）时，
+每个 Agent 都从各自的固定目录加载技能：
+
+| Agent | 技能根目录（用户级） |
+| --- | --- |
+| Doubao（豆包） | `%USERPROFILE%\AppData\Local\Doubao\User Data\Default\.doubao\agent_mode\workspace\.user_skills` |
+| Claude Code | `%USERPROFILE%\.claude\skills\` |
+| Codex / Cursor | `%USERPROFILE%\.agents\skills\` |
+| Cursor | `%USERPROFILE%\.cursor\skills\` |
+| OpenClaw | `%USERPROFILE%\.openclaw\workspace\skills\` |
+
+装一个技能就要复制到每个目录；更新一个技能就要逐个覆盖。重复、易漏、版本漂移。
+
+## 方案核心
+
+1. **一个共享技能库**（唯一数据源）：`C:\Users\<you>\skills\shared`
+2. **每个 Agent 的技能根目录 → 目录联接（Junction）指向共享库**
+3. 读写穿透、实时共享：在共享库新增/更新/删除一个技能，**所有 Agent 的新会话同时生效**
+
+### 为什么用 Junction 而不是复制 / 符号链接
+
+| 方式 | 一次安装处处生效 | 需管理员权限 | 改动即时同步 | 跨卷 | 风险 |
+| --- | :-: | :-: | :-: | :-: | --- |
+| 复制到各目录 | ❌ | ❌ | ❌ | ✅ | 版本漂移 |
+| 符号链接 `mklink /D` | ✅ | ✅（或开开发者模式） | ✅ | ✅ | 权限门槛高 |
+| **目录联接 `mklink /J`（本方案）** | ✅ | ❌ | ✅ | ✅ | 删除语义需注意（见下文） |
+
+## 快速开始
+
+```powershell
+# 1. 复制配置模板并填写你的 Agent 路径
+copy config\agents.example.json config\agents.json
+notepad config\agents.json
+
+# 2. 试运行（只看会做什么，不真正执行）
+.\scripts\setup.ps1 -WhatIf
+
+# 3. 正式执行
+.\scripts\setup.ps1
+
+# 4. 验证所有 Agent 的技能可见性
+.\scripts\verify.ps1
+
+# 5. 重启各 Agent 会话，技能生效
+```
+
+> ⚠️ 脚本会自动把各 Agent 目录里**已有的技能迁移**进共享库（同名冲突会保留原文件并生成报告，不会覆盖）。
+> 脚本只处理你写入 `agents.json` 的路径，**不会**触碰 Doubao 的 `.skills` 系统技能目录。
+
+## 目录结构
+
+```
+agent-skills-shared/
+├── README.md                      # 本文件（总览）
+├── docs/
+│   ├── 01-architecture.md         # 方案详解：机制、原理、对比
+│   ├── 02-agent-path-reference.md # 各 Agent 技能目录速查表（带官方来源）
+│   ├── 03-setup-guide.md          # 完整搭建指南（迁移/验证/生效）
+│   ├── 04-day-to-day.md           # 日常使用：新增/更新/删除技能、增删 Agent
+│   ├── 05-safety-and-rollback.md  # 风险清单与回滚流程
+│   └── 06-faq.md                  # 常见问题
+├── diagrams/                      # 图解（SVG，GitHub 可直接渲染）
+│   ├── architecture.svg           # 整体架构图
+│   ├── junction-mechanism.svg     # Junction 机制原理图
+│   ├── setup-flow.svg             # 搭建流程
+│   ├── update-flow.svg            # 日常更新流程
+│   └── rollback-flow.svg          # 回滚流程
+├── config/
+│   └── agents.example.json        # Agent 路径配置模板
+└── scripts/
+    ├── setup.ps1                  # 一键搭建：迁移 + 建联接 + 验证
+    ├── add-agent.ps1              # 为单个 Agent 建立联接
+    ├── remove-agent.ps1           # 移除单个 Agent 的联接（回滚）
+    └── verify.ps1                 # 验证所有联接与技能可见性
+```
+
+## 文档导航
+
+- 想理解原理 → [`docs/01-architecture.md`](docs/01-architecture.md)（含机制图解）
+- 想核对你的 Agent 路径 → [`docs/02-agent-path-reference.md`](docs/02-agent-path-reference.md)
+- 想完整搭建 → [`docs/03-setup-guide.md`](docs/03-setup-guide.md)
+- 想日常维护 → [`docs/04-day-to-day.md`](docs/04-day-to-day.md)
+- 想了解风险 → [`docs/05-safety-and-rollback.md`](docs/05-safety-and-rollback.md)
+- 有问题先看 → [`docs/06-faq.md`](docs/06-faq.md)
+
+## 环境要求
+
+- Windows 10 / 11（NTFS 分区）
+- PowerShell 5.1+（Windows 自带）
+- **不需要管理员权限**（Junction 无需提权）
+
+## 已知边界
+
+- **内容共享 ≠ 行为通用**：Agent 平台专属语法（Claude Code 的斜杠命令、OpenClaw 的插件配置等）不会跨平台生效，共享的是通用 Prompt 型技能。
+- **共享命运**：在一个 Agent 里删改技能会影响所有 Agent——这是特性，也是风险（见风险文档）。
+- **索引时机**：绝大多数 Agent 在会话启动时扫描技能，改动后需重启会话。
+- 本项目面向 Windows；macOS / Linux 用户可用符号链接（`ln -s`）实现同一思路。
+
+## License
+
+[MIT](LICENSE)

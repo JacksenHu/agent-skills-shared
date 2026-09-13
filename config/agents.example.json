@@ -1,0 +1,9 @@
+{
+  "sharedRoot": "C:\\Users\\<你的用户名>\\skills\\shared",
+  "agents": {
+    "doubao-user-skills": "C:\\Users\\<你的用户名>\\AppData\\Local\\Doubao\\User Data\\Default\\.doubao\\agent_mode\\workspace\\.user_skills",
+    "claude-code": "C:\\Users\\<你的用户名>\\.claude\\skills",
+    "codex-agents-skills": "C:\\Users\\<你的用户名>\\.agents\\skills",
+    "cursor": "C:\\Users\\<你的用户名>\\.cursor\\skills"
+  }
+}
