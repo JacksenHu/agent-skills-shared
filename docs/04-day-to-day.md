@@ -3,7 +3,7 @@
 > 原则只有一条：**所有技能操作都在共享库目录进行**，所有 Agent 自动跟随。
 >
 > 入口：双击桌面「统一技能库管理」快捷方式（首次启动向导时自动创建），
-> 或运行 `.\scripts\setup-wizard.ps1`。
+> 或运行 `.\.\scripts\setup-wizard.ps1`。
 
 ## 1. 新增一个技能
 
@@ -68,7 +68,7 @@ Copy-Item -Recurse C:\下载\some-skill C:\Users\<你>\skills\shared\some-skill
 .\scripts\check-updates.ps1 -Token ghp_xxx
 ```
 
-或在向导主菜单选 [6] 检查技能版本更新。
+或在向导主菜单选 [6] → **a** 检查技能版本更新。
 
 检测结果：
 
@@ -82,6 +82,34 @@ Copy-Item -Recurse C:\下载\some-skill C:\Users\<你>\skills\shared\some-skill
 > 手动复制/迁移的技能没有仓库来源，无法远程检测，仅显示本地版本号
 > （WorkBuddy 等市场安装的技能 `_meta.json` 有 version 字段时可见）。
 > 想纳入检测：用 [3]b / install-skill.ps1 从仓库链接重新安装一次。
+
+## 2b. 检测本项目（工具）自身更新
+
+「技能版本更新」检测的是**技能**（共享库里的技能相对其来源仓库是否落后）；「项目自身更新」
+检测的是**这套工具**（agent-skills-shared 的脚本/文档/向导）在 GitHub 上是否有新版本推送：
+
+```powershell
+# 只检测：对比本地 VERSION 与 GitHub 仓库远程 VERSION
+.\scripts\check-project-updates.ps1
+
+# 检测并一键升级（git clone 或下载 ZIP；自动排除 config\agents.json）
+.\scripts\check-project-updates.ps1 -Update
+
+# 本项目仓库为私有，远程检测需要 GitHub Token（只读 repo 权限）
+.\scripts\check-project-updates.ps1 -Token ghp_xxx
+```
+
+或在向导主菜单选 [6] → **b**。
+
+要点：
+
+- 本地 `VERSION`（项目根）记录当前版本号；远程对比 GitHub 仓库 main 分支的 `VERSION`。
+- 判定结果四类：`[最新]` 已是最新 / `[有更新]` 本地落后（显示 本地 → 远程）/ `[无基准]` 本地无 VERSION（旧版解压，`-Update` 同步一次）/ `[不可查]` 远程读不到。
+- `-Update` 升级前会列出差异文件并**二次确认**；`config\agents.json`（你的 Agent 配置）**永不覆盖**。
+- 私有仓库的 Token：GitHub → Settings → Developer settings → Personal access tokens（classic）→ 勾选 `repo`；
+  也可设置环境变量 `GITHUB_TOKEN`，脚本自动读取。
+- git 克隆目录也可以直接 `git pull` 升级（同样注意勿覆盖 `config\agents.json`）。
+- 升级完成后新版本立即生效，无需重启 Agent。
 
 ## 3. 更新一个技能
 

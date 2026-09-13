@@ -7,6 +7,18 @@
 
 ![架构图](diagrams/architecture.svg)
 
+## 功能总览
+
+| 能力 | 说明 | 入口 |
+| --- | --- | --- |
+| 🗂️ **共享技能库** | 一套技能存一处，所有 Agent 通过目录联接实时共用；新增/更新/删除一处生效 | 自动（[1] 快速搭建） |
+| 🖥️ **专业终端控制台** | VT 真彩色渐变标题、双线框面板、状态栏、语义色；不支持 ANSI 自动降级 16 色 | 桌面快捷方式 / `setup-wizard.ps1` |
+| 🚀 **一键快速搭建** | 预设 12 个常见 Agent 路径、自动探测本机已装、`d` 全选；迁移去重 → 建联接 → 验证 全自动 | 向导 [1] |
+| 🧭 **技能管理** | 技能按 **9 大分类**自动归类；中文简介；GitHub / skills.sh 仓库链接一键安装；移除双重确认；分类浏览 | 向导 [3] |
+| 🔍 **扫描 Agent 技能** | 随时检测各 Agent 已安装技能，标注「已共享 / 冲突 / 独有」并给出迁移建议 | 向导 [5] |
+| 🔄 **检测更新** | 技能版本更新（对比来源仓库最新提交，可自动升级）+ 项目（工具）自身更新（一键升级） | 向导 [6] |
+| 📌 **桌面快捷方式** | 首次启动自动创建「统一技能库管理」，双击即开控制台 | 自动 |
+
 ## 痛点
 
 同时使用多个 Agent 软件（Doubao、Claude Code、Codex、Cursor、Windsurf、OpenClaw……）时，
@@ -67,16 +79,19 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 .\scripts\setup-wizard.ps1
 ```
 
-看到下面的菜单就说明项目已跑起来：
+看到下面的界面就说明项目已跑起来：
 
 ```text
-============================================
-  统一技能库 · 管理控制台
-  一套技能，只装一次，所有 Agent 共用
-============================================
-  [1] 快速搭建（配置 + 迁移 + 建立联接）
-  [2] 验证所有 Agent 联接
-  ...
+╔══════════════════════════════════════════════════════════╗
+║                 统一技能库 · 管理控制台                    ║
+║           一套技能 · 只装一次 · 所有 Agent 共用            ║
+╠─ 主菜单 ──────────────────────────────────────────────────╣
+║  [1] 快速搭建    [2] 验证联接    [3] 技能管理              ║
+║  [4] 接入/移除   [5] 扫描已装    [6] 检查更新              ║
+║  [7] 帮助与文档  [0] 退出                                  ║
+╠─ 状态 ────────────────────────────────────────────────────╣
+║  共享库 …\skills\shared  ·  59 个技能  ·  5 个 Agent       ║
+╚══════════════════════════════════════════════════════════╝
 ```
 
 **第 4 步 · 按菜单搭建**
@@ -91,8 +106,10 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 再启动一次向导即可自动重建。
 
 > 💡 之后每次使用，双击桌面「统一技能库管理」，或运行 `.\scripts\setup-wizard.ps1`：
-> 加装技能选 [3]b、查看分类选 [3]a、扫描各 Agent 已装技能选 [5]、检测升级选 [6]。
-> 更新项目：git clone 方式 `git pull`；ZIP 方式重新下载解压（**别覆盖**你生成的 `config\agents.json`）。
+> 加装技能选 [3]b、查看分类选 [3]a / [3]d、扫描各 Agent 已装技能选 [5]、
+> 技能升级选 [6]a、项目（工具）升级选 [6]b。
+> 更新项目：git clone 方式 `git pull`；ZIP 方式重新下载解压（**别覆盖**你生成的 `config\agents.json`），
+> 或在向导 [6]b 用 `-Update` 一键升级。
 
 ![快速使用流程](diagrams/quickstart-flow.svg)
 
@@ -105,12 +122,35 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 .\scripts\setup-wizard.ps1
 ```
 
-打开**首页主菜单**：快速搭建 / 验证 / 技能管理（**按分类分组列出**、从 GitHub 仓库链接安装、移除、按分类浏览）/
-接入移除 Agent / 扫描各 Agent 已安装技能 / **检查技能版本更新** / 帮助。搭建时**预设 12 个常见 Agent 技能路径**（Doubao、Claude Code、
-Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy 等，均来自官方文档或实测），
-自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认，
-自动完成：生成配置 → 迁移已有技能（**内容一致自动去重、内容不同提示冲突**）
-→ 建立联接 → 验证，无需手写任何 JSON。
+打开**首页主菜单**：
+
+| 菜单 | 功能 |
+| --- | --- |
+| [1] 快速搭建 | 配置 Agent 路径 → 迁移已有技能（**内容一致自动去重、内容不同提示冲突**）→ 建立联接 → 验证，无需手写 JSON |
+| [2] 验证联接 | 逐项检查每个 Agent 的目录、Junction 指向、技能可见数 |
+| [3] 技能管理 | **a** 技能清单（按 9 大分类分组，含中文简介）· **b** 从 GitHub / skills.sh 仓库链接安装 · **c** 移除（双重确认）· **d** 按分类浏览 |
+| [4] 接入 / 移除 Agent | 单 Agent 接入（含去重/冲突处理）与移除（回滚） |
+| [5] 扫描已装技能 | 发现各 Agent 中未进共享库的技能，标注「已共享 / 冲突 / 独有」 |
+| [6] 检查更新 | **a** 技能版本更新（对比来源仓库最新提交，可自动升级）· **b** 项目（工具）自身更新（一键升级） |
+| [7] 帮助与文档 | docs 导航 + 常用命令速查 |
+| [0] 退出 | 结束会话 |
+
+搭建时**预设 12 个常见 Agent 技能路径**（Doubao、Claude Code、Codex、Cursor、Windsurf、
+OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy 等，均来自官方文档或实测），
+自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认。
+也支持**自定义路径**：直接输入任意 Agent 的技能根目录即可接入。
+
+### 控制台界面特性
+
+- **VT 真彩色渐变标题**：Windows 10+ 终端自动启用；不支持 ANSI 的环境自动降级为 16 色，功能完全一致
+- **双线框面板**：所有菜单、清单、确认框统一 `╔╗║╠╣╚╝` 双线边框 + 标题栏
+- **状态栏**：实时显示共享库路径、技能总数、已接入 Agent 数
+- **语义色**：操作提示 / 成功 / 警告 / 错误 / 危险操作分色显示；危险删除带红框 + 双重确认
+
+### 脚本对中文环境的兼容
+
+全部脚本统一 **UTF-8 带 BOM** 编码，Windows PowerShell 5.1 直接运行中文不乱码
+（早期无 BOM 版本在部分系统会乱码，已修复）。
 
 **从仓库链接一键装技能（含在其他终端/脚本中）：**
 
@@ -123,8 +163,8 @@ Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、W
 .\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo/skill-name"
 ```
 
-安装后自动为每个技能生成中文简介元数据（技能管理列表会显示），并记录**版本基准**（来源仓库
-`branch` + 默认分支最新提交 `commitSha`），供检测升级使用。
+安装后自动为每个技能生成**中文简介元数据**（`_meta.json`，技能管理列表会显示），
+并记录**版本基准**（来源仓库 `branch` + 默认分支最新提交 `commitSha`），供检测升级使用。
 
 **检测技能版本更新（对比 GitHub 仓库最新提交）：**
 
@@ -137,8 +177,27 @@ Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、W
 .\scripts\check-updates.ps1 -Token ghp_xxx
 ```
 
-也可在向导主菜单选 [6]。检测到更新后重启各 Agent 会话生效。
+也可在向导主菜单选 [6] → **a**。检测到更新后重启各 Agent 会话生效。
 只有**从仓库链接安装**的技能可检测；迁移/手放的技能无远程依据，仅显示本地版本号。
+
+![技能版本更新检测流程](diagrams/check-updates-flow.svg)
+
+**检测本项目（工具）自身更新（新版本推送）：**
+
+```powershell
+# 只检测：对比本地 VERSION 与 GitHub 仓库远程 VERSION
+.\scripts\check-project-updates.ps1
+# 检测并一键升级（git clone 或下载 ZIP，自动排除 config\agents.json）
+.\scripts\check-project-updates.ps1 -Update
+# 本项目仓库为私有，远程检测需 GitHub Token（只读 repo 权限）
+.\scripts\check-project-updates.ps1 -Token ghp_xxx
+```
+
+也可在向导主菜单选 [6] → **b**。升级完成后新版本立即生效（无需重启 Agent）。
+Token 创建：GitHub → Settings → Developer settings → Personal access tokens →
+Generate new token (classic)，勾选 `repo`；也可设置环境变量 `GITHUB_TOKEN` 自动使用。
+
+![项目自身更新检测流程](diagrams/check-project-updates-flow.svg)
 
 **随时检测各 Agent 已安装技能（发现未进共享库的技能）：**
 
@@ -176,11 +235,12 @@ notepad config\agents.json
 ```
 agent-skills-shared/
 ├── README.md                      # 本文件（总览）
+├── VERSION                        # 项目版本号（供 check-project-updates.ps1 对比远程）
 ├── docs/
 │   ├── 01-architecture.md         # 方案详解：机制、原理、对比
 │   ├── 02-agent-path-reference.md # 各 Agent 技能目录速查表（带官方来源）
 │   ├── 03-setup-guide.md          # 完整搭建指南（迁移/验证/生效）
-│   ├── 04-day-to-day.md           # 日常使用：新增/更新/删除技能、检测升级、增删 Agent
+│   ├── 04-day-to-day.md           # 日常使用：新增/更新/删除技能、增删 Agent
 │   ├── 05-safety-and-rollback.md  # 风险清单与回滚流程
 │   └── 06-faq.md                  # 常见问题
 ├── diagrams/                      # 图解（SVG，GitHub 可直接渲染）
@@ -191,14 +251,16 @@ agent-skills-shared/
 │   ├── rollback-flow.svg          # 回滚流程
 │   ├── skills-management.svg      # 技能管理（分类/仓库安装/移除/浏览/扫描）
 │   ├── check-updates-flow.svg     # 技能版本更新检测流程
+│   ├── check-project-updates-flow.svg # 项目（工具）自身更新检测流程
 │   └── quickstart-flow.svg        # 快速使用流程（含桌面快捷方式）
 ├── config/
 │   └── agents.example.json        # Agent 路径配置模板（含 12 项预设）
 └── scripts/
-    ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/扫描/仓库安装/检查更新）
+    ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/扫描/检查更新）
     ├── setup.ps1                   # 一键搭建：迁移（智能去重）+ 建联接 + 验证
     ├── install-skill.ps1           # 从 GitHub / skills.sh 仓库链接一键安装技能（自动生成中文简介+版本基准）
     ├── check-updates.ps1           # 检测技能版本更新（对比 GitHub 仓库最新提交，-Update 自动升级）
+    ├── check-project-updates.ps1   # 检测本项目（工具）自身更新（对比 VERSION，-Update 一键升级）
     ├── scan-agents.ps1             # 扫描各 Agent 已安装技能（发现未进共享库的技能）
     ├── add-agent.ps1               # 为单个 Agent 建立联接（含去重/冲突处理）
     ├── remove-agent.ps1            # 移除单个 Agent 的联接（回滚）
@@ -224,6 +286,7 @@ agent-skills-shared/
 | [`diagrams/update-flow.svg`](diagrams/update-flow.svg) | 日常使用流程 |
 | [`diagrams/skills-management.svg`](diagrams/skills-management.svg) | 技能管理（分类/仓库安装/移除/浏览/扫描） |
 | [`diagrams/check-updates-flow.svg`](diagrams/check-updates-flow.svg) | 技能版本更新检测流程 |
+| [`diagrams/check-project-updates-flow.svg`](diagrams/check-project-updates-flow.svg) | 项目（工具）自身更新检测流程 |
 | [`diagrams/quickstart-flow.svg`](diagrams/quickstart-flow.svg) | 快速使用流程（获取项目 → 放行 → 首次启动建快捷方式 → 日常菜单） |
 | [`diagrams/rollback-flow.svg`](diagrams/rollback-flow.svg) | 回滚流程 |
 
@@ -232,12 +295,14 @@ agent-skills-shared/
 - Windows 10 / 11（NTFS 分区）
 - PowerShell 5.1+（Windows 自带）
 - **不需要管理员权限**（Junction 无需提权）
+- 可选依赖：`git`（项目自身更新检测 -Update 时优先使用，未安装则自动改用下载 ZIP）；`GitHub Token`（私有仓库的项目更新检测需要，只读 repo 权限即可）
 
 ## 已知边界
 
 - **内容共享 ≠ 行为通用**：Agent 平台专属语法（Claude Code 的斜杠命令、OpenClaw 的插件配置等）不会跨平台生效，共享的是通用 Prompt 型技能。
 - **共享命运**：在一个 Agent 里删改技能会影响所有 Agent——这是特性，也是风险（见风险文档）。
 - **索引时机**：绝大多数 Agent 在会话启动时扫描技能，改动后需重启会话。
+- **私有仓库检测**：本项目（agent-skills-shared）仓库为私有，`check-project-updates.ps1` 远程检测需要 GitHub Token；技能更新检测（`check-updates.ps1`）只读公开仓库，无需 Token（仅限速）。
 - 本项目面向 Windows；macOS / Linux 用户可用符号链接（`ln -s`）实现同一思路。
 
 ## License
