@@ -112,7 +112,8 @@ agent-skills-shared/
 │   ├── junction-mechanism.svg     # Junction 机制原理图
 │   ├── setup-flow.svg             # 搭建流程
 │   ├── update-flow.svg            # 日常更新流程
-│   └── rollback-flow.svg          # 回滚流程
+│   ├── rollback-flow.svg          # 回滚流程
+│   └── skills-management.svg      # 技能管理（分类/仓库安装/移除/浏览/扫描）
 ├── config/
 │   └── agents.example.json        # Agent 路径配置模板（含 11 项预设）
 └── scripts/
@@ -133,6 +134,17 @@ agent-skills-shared/
 - 想日常维护 → [`docs/04-day-to-day.md`](docs/04-day-to-day.md)
 - 想了解风险 → [`docs/05-safety-and-rollback.md`](docs/05-safety-and-rollback.md)
 - 有问题先看 → [`docs/06-faq.md`](docs/06-faq.md)
+
+## 图解导航
+
+| 图解 | 内容 |
+| --- | --- |
+| [`diagrams/architecture.svg`](diagrams/architecture.svg) | 整体架构：一个共享库 ↔ 多个 Agent 联接 |
+| [`diagrams/junction-mechanism.svg`](diagrams/junction-mechanism.svg) | Junction 机制原理 |
+| [`diagrams/setup-flow.svg`](diagrams/setup-flow.svg) | 搭建流程 |
+| [`diagrams/update-flow.svg`](diagrams/update-flow.svg) | 日常使用流程 |
+| [`diagrams/skills-management.svg`](diagrams/skills-management.svg) | 技能管理（分类/仓库安装/移除/浏览/扫描） |
+| [`diagrams/rollback-flow.svg`](diagrams/rollback-flow.svg) | 回滚流程 |
 
 ## 环境要求
 

@@ -73,4 +73,6 @@ Remove-Item -Recurse "C:\Users\<你>\skills\shared"
 - 共享库纳入 git 版本管理（`git init` + 定期 commit），误删可回退；
 - 改动前后各跑一次 `verify.ps1`；
 - 新技能先在共享库放一个测试技能验证全链路，再批量迁移；
-- 不要把系统级技能目录（如 Doubao `.skills`）纳入共享。
+- 不要把系统级技能目录（如 Doubao `.skills`）纳入共享；
+- 移除技能用向导 `setup-wizard.ps1` → [3]c（带双重确认），避免直接手删误操作；
+- 定期用向导 [3]a 查看技能分类清单、[5] 扫描各 Agent 已安装技能，发现"独有"技能及时迁移进共享库，保持单一数据源。

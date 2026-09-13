@@ -12,9 +12,10 @@
     </marker>
   </defs>
 
-  <text x="550" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">搭建流程（一键脚本 + 手动步骤）</text>
-  <text x="550" y="62" text-anchor="middle" font-size="13" fill="#64748B">核心命令：setup.ps1（先 -WhatIf 试运行）→ verify.ps1 → 重启各 Agent 会话</text>
+  <text x="550" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">搭建流程（交互向导 或 手动步骤）</text>
+  <text x="550" y="62" text-anchor="middle" font-size="13" fill="#64748B">推荐：setup-wizard.ps1 全程选择即可；手动：setup.ps1（先 -WhatIf）→ verify.ps1 → 重启会话</text>
 
+  <!-- 节点组件：矩形 -->
   <g font-size="13" fill="#FFFFFF">
     <rect x="290" y="86" width="520" height="48" rx="10" fill="#2563EB"/>
     <text x="550" y="116" text-anchor="middle" font-weight="700">① 准备：编辑 config\agents.json（共享库路径 + Agent 清单）</text>
@@ -25,6 +26,7 @@
     <text x="550" y="182" text-anchor="middle">② 试运行：.\scripts\setup.ps1 -WhatIf（只预览，不执行）</text>
   </g>
 
+  <!-- 菱形 1：NTFS -->
   <g>
     <polygon points="550,232 780,268 550,304 320,268" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
     <text x="550" y="272" text-anchor="middle" font-size="13" fill="#92400E">共享库分区是 NTFS ？</text>
@@ -44,6 +46,7 @@
     <text x="550" y="422" text-anchor="middle">④ 循环：依次处理每个 Agent 根目录（下面四步）</text>
   </g>
 
+  <!-- 菱形 2：存在？ -->
   <g>
     <polygon points="550,462 780,494 550,526 320,494" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
     <text x="550" y="490" text-anchor="middle" font-size="13" fill="#92400E">目录已存在？</text>
@@ -54,6 +57,7 @@
   <text x="950" y="508" text-anchor="middle" font-size="11" fill="#065F46">→ 继续下一个 Agent</text>
   <line x1="780" y1="494" x2="822" y2="494" stroke="#10B981" stroke-width="1.5" marker-end="url(#arrG)"/>
 
+  <!-- 菱形 3：已是 Junction？ -->
   <g>
     <polygon points="550,548 780,580 550,612 320,580" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
     <text x="550" y="584" text-anchor="middle" font-size="13" fill="#92400E">已是 Junction？</text>
@@ -63,6 +67,7 @@
   <text x="950" y="594" text-anchor="middle" font-size="11" fill="#065F46">✓ 跳过 ／ ✗ 报错</text>
   <line x1="780" y1="580" x2="822" y2="580" stroke="#10B981" stroke-width="1.5" marker-end="url(#arrG)"/>
 
+  <!-- 菱形 4：有内容？ -->
   <g>
     <polygon points="550,634 780,666 550,698 320,666" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
     <text x="550" y="670" text-anchor="middle" font-size="13" fill="#92400E">目录内有内容？</text>
@@ -72,16 +77,19 @@
   <text x="950" y="680" text-anchor="middle" font-size="11" fill="#065F46">→ mklink /J 建联接</text>
   <line x1="780" y1="666" x2="822" y2="666" stroke="#10B981" stroke-width="1.5" marker-end="url(#arrG)"/>
 
+  <!-- 迁移 -->
   <g font-size="13" fill="#1E293B">
     <rect x="290" y="720" width="520" height="48" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
     <text x="550" y="750" text-anchor="middle">⑤ 迁移内容进共享库（同名冲突：保留 + 报告）→ 删空目录 → 建联接</text>
   </g>
 
+  <!-- 循环结束 -->
   <g font-size="13" fill="#FFFFFF">
     <rect x="290" y="786" width="520" height="48" rx="10" fill="#2563EB"/>
     <text x="550" y="816" text-anchor="middle" font-weight="700">⑥ 全部处理完 → 自动验证 verify.ps1 → 重启各 Agent 会话 ✅</text>
   </g>
 
+  <!-- 主流程箭头 -->
   <g stroke="#2563EB" stroke-width="2" fill="none">
     <line x1="550" y1="86" x2="550" y2="144" marker-end="url(#arr)"/>
     <line x1="550" y1="200" x2="550" y2="226" marker-end="url(#arr)"/>
@@ -94,6 +102,7 @@
     <line x1="550" y1="768" x2="550" y2="778" marker-end="url(#arr)"/>
   </g>
 
+  <!-- 分支回到循环结束 -->
   <g stroke="#94A3B8" stroke-width="1.5" fill="none" stroke-dasharray="5 4">
     <line x1="950" y1="518" x2="950" y2="810" />
     <line x1="950" y1="604" x2="950" y2="810" />
