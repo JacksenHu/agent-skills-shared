@@ -27,6 +27,9 @@ $ErrorActionPreference = 'Stop'
 # 默认配置路径（$PSScriptRoot 在 param 默认值阶段不可用，故在主体解析）
 if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot '..\config\agents.json' }
 
+# 加载「同一 Agent 多技能根」重复加载防护（setup / add-agent / verify 共用）
+. (Join-Path $PSScriptRoot 'lib\duplicate-guard.ps1')
+
 # ---------- 工具：比较两个目录内容是否完全一致（相对路径 + 文件哈希） ----------
 function Test-DirSame {
     param([string]$PathA, [string]$PathB)
@@ -63,6 +66,17 @@ $agentPaths = @($config.agents.PSObject.Properties | ForEach-Object {
 } | Sort-Object Path -Unique)
 
 if ($agentPaths.Count -eq 0) { throw '配置中没有任何 Agent 路径，请先编辑 agents.json' }
+
+# ---------- 预检：同一 Agent 多技能根 → 重复加载防护 ----------
+# 若配置里存在会被同一软件同时扫描的多个技能根（如豆包 .user_skills / Doubao\skills / .agents\skills），
+# 全部接入共享库会导致技能重复加载。默认取消，避免重复发生。
+$conflicts = Get-SameSourceConflicts @($agentPaths | ForEach-Object { $_.Path })
+if ($WhatIfPreference) {
+    Show-ConflictWarning $conflicts | Out-Null
+} elseif (-not (Show-ConflictWarning $conflicts -Ask)) {
+    Write-Host '已取消：请先在 config\agents.json 中去掉多余的同源技能根（每个软件保留一个入口），再重新运行。' -ForegroundColor Yellow
+    exit 1
+}
 
 # ---------- 创建共享库 ----------
 if (-not (Test-Path $sharedRoot)) {
