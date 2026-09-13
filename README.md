@@ -38,14 +38,22 @@
 
 ## 快速开始
 
-**方式 A（推荐）· 交互式引导，全程只需选择：**
+**方式 A（推荐）· 交互式控制台，全程只需选择：**
 
 ```powershell
 .\scripts\setup-wizard.ps1
 ```
 
-脚本自动探测本机已安装的 Agent 技能目录 → 按菜单勾选要接入的 Agent → 回车确认，
-自动完成：生成配置 → 迁移已有技能 → 建立联接 → 验证，无需手写任何 JSON。
+打开**首页主菜单**：快速搭建 / 验证 / 技能管理（列出、从 GitHub 仓库链接安装、移除）/
+接入移除 Agent / 帮助。搭建时自动探测本机已安装的 Agent 技能目录 → 按菜单勾选 →
+回车确认，自动完成：生成配置 → 迁移已有技能（**内容一致自动去重、内容不同提示冲突**）
+→ 建立联接 → 验证，无需手写任何 JSON。
+
+**从仓库链接一键装技能（含在其他终端/脚本中）：**
+
+```powershell
+.\scripts\install-skill.ps1 -RepoUrl "https://github.com/owner/skill-repo"
+```
 
 **方式 B · 手动配置：**
 
@@ -90,9 +98,10 @@ agent-skills-shared/
 ├── config/
 │   └── agents.example.json        # Agent 路径配置模板
 └── scripts/
-    ├── setup-wizard.ps1            # 交互式引导：按菜单选择即可完成配置、搭建与验证
-    ├── setup.ps1                   # 一键搭建：迁移 + 建联接 + 验证
-    ├── add-agent.ps1               # 为单个 Agent 建立联接
+    ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/仓库安装）
+    ├── setup.ps1                   # 一键搭建：迁移（智能去重）+ 建联接 + 验证
+    ├── install-skill.ps1           # 从 GitHub 仓库链接一键安装技能到共享库
+    ├── add-agent.ps1               # 为单个 Agent 建立联接（含去重/冲突处理）
     ├── remove-agent.ps1            # 移除单个 Agent 的联接（回滚）
     └── verify.ps1                  # 验证所有联接与技能可见性
 ```

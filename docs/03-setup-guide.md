@@ -104,6 +104,31 @@ notepad config\agents.json
 
 ![搭建流程](setup-flow.svg)
 
+## 6.1 从 GitHub 仓库一键安装技能
+
+搭建完成后，遇到想装的技能仓库，直接一条命令装进共享库（所有 Agent 生效）：
+
+```powershell
+.\scripts\install-skill.ps1 -RepoUrl "https://github.com/owner/skill-repo"
+```
+
+- 自动下载（zip，无需 git），自动识别技能结构：仓库根有 `SKILL.md` → 单技能；否则每个含 `SKILL.md` 的子目录都是一个技能；
+- 同名冲突默认**跳过**并报告，`-Replace` 强制替换旧版本；
+- 检测到 `package.json` / `requirements.txt` 等依赖清单会给出提示。
+- 也可在交互控制台 `setup-wizard.ps1` → [3] 技能管理 → [b] 输入链接安装。
+
+## 6.2 已有技能的迁移与去重策略
+
+`setup.ps1` / `add-agent.ps1` 处理"Agent 目录里已有的技能"时：
+
+| 情况 | 处理 |
+| --- | --- |
+| 共享库无同名 | **迁移**进共享库（移动，数据不丢） |
+| 同名且内容一致 | **自动去重**：删冗余副本，共享库保留一份 |
+| 同名且内容不同 | **冲突**：两边保留，提示人工决定，处理后再跑 |
+
+"内容一致"按目录内所有文件的相对路径 + SHA-256 哈希比对。
+
 ## 7. 搭建后的状态
 
 ```text

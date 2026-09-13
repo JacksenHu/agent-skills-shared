@@ -4,6 +4,26 @@
 
 ## 1. 新增一个技能
 
+**方式 A（推荐）· 从 GitHub 仓库一键安装：**
+
+```powershell
+.\scripts\install-skill.ps1 -RepoUrl "https://github.com/owner/skill-repo"
+```
+
+脚本自动：下载仓库（zip，无需 git）→ 识别技能（根目录有 `SKILL.md` 视为单技能，
+否则把每个含 `SKILL.md` 的子目录作为独立技能）→ 复制进共享库 → 报告结果。
+同名冲突默认跳过（加 `-Replace` 强制替换旧版本）。
+
+```powershell
+# 单技能仓库（如 findskills）→ 安装为 shared\findskills
+.\scripts\install-skill.ps1 -RepoUrl "https://github.com/hgta23/findskills"
+
+# 多技能仓库（35+ 个技能在子目录）→ 全部安装进共享库
+.\scripts\install-skill.ps1 -RepoUrl "https://github.com/vinvcn/mattpocock-skills-zh-CN"
+```
+
+**方式 B · 手动复制：**
+
 ```powershell
 # 把技能目录整个复制进共享库（保持"每个技能一个子目录 + SKILL.md"的结构）
 Copy-Item -Recurse C:\下载\some-skill C:\Users\<你>\skills\shared\some-skill
@@ -13,8 +33,6 @@ Copy-Item -Recurse C:\下载\some-skill C:\Users\<你>\skills\shared\some-skill
 ```
 
 重启各 Agent 会话后，新技能在所有 Agent 中可见。
-
-> 安装第三方技能时，目标目录直接填共享库即可（例如本仓库配套的安装流程）。
 
 ## 2. 更新一个技能
 

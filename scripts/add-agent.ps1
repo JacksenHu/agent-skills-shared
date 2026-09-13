@@ -7,7 +7,8 @@
   对指定目录执行与 setup.ps1 相同的单目录逻辑：
   - 目录不存在 → 直接建联接
   - 已是联接 → 校验目标
-  - 真实目录有内容 → 迁移进共享库（冲突保留并报告）→ 删空目录 → 建联接
+  - 真实目录有内容 → 迁移进共享库（同名且内容一致去重；
+     内容不同提示冲突）→ 删空目录 → 建联接
 
   建议同时把该路径写入 config\agents.json，便于后续统一巡检。
 
@@ -23,6 +24,25 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# ---------- 工具：比较两个目录内容是否完全一致（相对路径 + 文件哈希） ----------
+function Test-DirSame {
+    param([string]$PathA, [string]$PathB)
+    $filesA = @(Get-ChildItem $PathA -Recurse -File -Force -ErrorAction SilentlyContinue | Sort-Object FullName)
+    $filesB = @(Get-ChildItem $PathB -Recurse -File -Force -ErrorAction SilentlyContinue | Sort-Object FullName)
+    if ($filesA.Count -ne $filesB.Count) { return $false }
+    if ($filesA.Count -eq 0) { return $true }
+    $sha = [Security.Cryptography.SHA256]::Create()
+    for ($i = 0; $i -lt $filesA.Count; $i++) {
+        $relA = $filesA[$i].FullName.Substring($PathA.Length).TrimStart([char[]]@('\', '/'))
+        $relB = $filesB[$i].FullName.Substring($PathB.Length).TrimStart([char[]]@('\', '/'))
+        if ($relA -ne $relB) { return $false }
+        $hA = [Convert]::ToBase64String($sha.ComputeHash([IO.File]::ReadAllBytes($filesA[$i].FullName)))
+        $hB = [Convert]::ToBase64String($sha.ComputeHash([IO.File]::ReadAllBytes($filesB[$i].FullName)))
+        if ($hA -ne $hB) { return $false }
+    }
+    return $true
+}
 
 $root = [IO.Path]::GetFullPath($RootPath)
 $sharedRoot = [IO.Path]::GetFullPath($SharedRoot)
@@ -57,12 +77,21 @@ if (Test-Path $root) {
     }
 
     $children = @(Get-ChildItem $root -Force)
+    $conflicted = 0
     if ($children.Count -gt 0) {
         Write-Host "迁移 $($children.Count) 项已有内容到共享库…"
         foreach ($c in $children) {
             $dest = Join-Path $sharedRoot $c.Name
             if (Test-Path $dest) {
-                Write-Warning "[冲突] 共享库已存在 $($c.Name)，保留现有版本，未迁移 $($c.FullName)"
+                if (Test-DirSame -PathA $c.FullName -PathB $dest) {
+                    Write-Host "  [去重] $($c.Name) 与共享库内容一致，移除冗余副本" -ForegroundColor Yellow
+                    if ($PSCmdlet.ShouldProcess($c.FullName, '移除与共享库内容一致的冗余副本')) {
+                        Remove-Item -Path $c.FullName -Recurse -Force
+                    }
+                } else {
+                    Write-Warning "  [冲突] 共享库已有同名「$($c.Name)」但内容不同；保留原处 `n         $($c.FullName)`n         请人工决定（保留哪份），处理后再运行。"
+                    $conflicted++
+                }
                 continue
             }
             if ($PSCmdlet.ShouldProcess($c.FullName, '迁移到共享库')) {
@@ -70,6 +99,10 @@ if (Test-Path $root) {
                 Write-Host "  已迁移: $($c.Name)" -ForegroundColor Green
             }
         }
+    }
+    if ($conflicted -gt 0) {
+        Write-Warning "$AgentName 存在 $conflicted 项内容冲突（见上方），目录未清空，请人工处理后重跑。"
+        return
     }
     if ($PSCmdlet.ShouldProcess($root, '删除空目录（内容已迁移）')) {
         Remove-Item -Path $root -Force
