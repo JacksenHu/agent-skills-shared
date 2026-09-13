@@ -22,6 +22,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# 加载「同一 Agent 多技能根」重复加载防护（setup / add-agent / verify 共用）
+. (Join-Path $PSScriptRoot 'lib\duplicate-guard.ps1')
+
 # 默认配置路径（$PSScriptRoot 在 param 默认值阶段不可用，故在主体解析）
 if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot '..\config\agents.json' }
 
@@ -61,6 +64,10 @@ foreach ($a in $agentPaths) {
     $count = @(Get-ChildItem -Path $root -Recurse -File -Filter 'SKILL.md' -ErrorAction SilentlyContinue).Count
     Write-Host ("[OK]   {0,-22} -> {1}（{2} 个 SKILL.md）" -f $a.Name, $target, $count) -ForegroundColor Green
 }
+
+# ---------- 重复入口检测（不阻塞，仅提示） ----------
+$conflicts = Get-SameSourceConflicts @($agentPaths | ForEach-Object { $_.Path })
+Show-ConflictWarning $conflicts | Out-Null
 
 Write-Host "`n========== 验证结果 ==========" -ForegroundColor Cyan
 if ($failCount -eq 0) {
