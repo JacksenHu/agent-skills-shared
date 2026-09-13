@@ -798,8 +798,8 @@ function Show-UpdateMenu {
 # =====================================================================
 function Invoke-ProjectUpdate {
     Show-BoxTop '检查项目（工具）更新' primary
-    Show-BoxRow '本项目仓库为私有，远程检测需要 GitHub Token（只读即可）。' dim
-    Show-BoxRow '已设置环境变量 GITHUB_TOKEN 则自动使用；否则可手动输入。' dim
+    Show-BoxRow '仓库为公开仓库，匿名即可检测，无需登录。' dim
+    Show-BoxRow '输入 GitHub Token 可提高 API 配额（可选，回车跳过）。' dim
     Show-BoxBottom primary
     Write-C ''
     $token = ''
@@ -807,7 +807,7 @@ function Invoke-ProjectUpdate {
         $token = $env:GITHUB_TOKEN
         Write-Ok '已从环境变量 GITHUB_TOKEN 读取 Token。'
     } else {
-        Write-C '? 输入 GitHub Token（回车跳过，仅检测本地版本）  > ' -C text -NoNewline
+        Write-C '? 输入 GitHub Token（可选，回车跳过直接匿名检测）  > ' -C text -NoNewline
         $token = (Read-Host).Trim()
     }
     Write-C ''
@@ -850,7 +850,7 @@ function Show-Help {
     Show-BoxRow '验证                .\scripts\verify.ps1' text
     Show-BoxRow '扫描 Agent 技能     .\scripts\scan-agents.ps1' text
     Show-BoxRow '检查技能版本更新    .\scripts\check-updates.ps1  （-Update 自动升级）' text
-    Show-BoxRow '检查项目（工具）更新 .\scripts\check-project-updates.ps1  （-Update 升级，私有仓库需 Token）' text
+    Show-BoxRow '检查项目（工具）更新 .\scripts\check-project-updates.ps1  （-Update 升级，公开仓库匿名即可）' text
     Show-BoxRow '接入 Agent    .\scripts\add-agent.ps1 -AgentName 名 -RootPath 路径' text
     Show-BoxRow '移除 Agent    .\scripts\remove-agent.ps1 -AgentName 名 -RootPath 路径' text
     Show-BoxRow '安装技能（仓库链接）.\scripts\install-skill.ps1 -RepoUrl <仓库地址>' text
@@ -861,7 +861,7 @@ function Show-Help {
     Show-BoxRow '- 仓库链接安装到共享库后，重启各 Agent 会话生效' dim
     Show-BoxRow '- 在 Agent 内手动安装的技能可用 [5] 扫描发现并迁移' dim
     Show-BoxRow '- 只有仓库链接安装的技能可检测升级（[6]a），安装会记录基准 commitSha' dim
-    Show-BoxRow '- 项目（工具）更新检测（[6]b）：私有仓库需 GITHUB_TOKEN，-Update 自动升级' dim
+    Show-BoxRow '- 项目（工具）更新检测（[6]b）：匿名即可检测，-Update 一键升级' dim
     Show-BoxBottom primary
     Write-C ''
 }
