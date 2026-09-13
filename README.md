@@ -44,7 +44,7 @@
 .\scripts\setup-wizard.ps1
 ```
 
-打开**首页主菜单**：快速搭建 / 验证 / 技能管理（列出、从 GitHub 仓库链接安装、移除）/
+打开**首页主菜单**：快速搭建 / 验证 / 技能管理（**按分类分组列出**、从 GitHub 仓库链接安装、移除、按分类浏览）/
 接入移除 Agent / 扫描各 Agent 已安装技能 / 帮助。搭建时**预设 11 个常见 Agent 技能路径**
 （Doubao、Claude Code、Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，均来自官方文档），
 自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认，

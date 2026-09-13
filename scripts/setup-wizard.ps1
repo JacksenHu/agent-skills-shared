@@ -7,7 +7,7 @@
   全程交互，无需手写 JSON。主菜单：
     [1] 快速搭建 —— 配置 Agent 并建立共享联接（自动迁移已有技能、智能去重）
     [2] 验证所有 Agent 联接
-    [3] 技能管理（列出含中文简介 / 从 GitHub、skills.sh 安装 / 移除）
+    [3] 技能管理（按分类分组列出含中文简介 / 从 GitHub、skills.sh 安装 / 移除 / 按分类浏览）
     [4] 接入 / 移除单个 Agent
     [5] 扫描各 Agent 已安装技能（发现未进共享库的技能）
     [6] 帮助与文档
@@ -118,7 +118,75 @@ function Get-SkillIntro {
         $d = [string]$fm['description']
         if ($d) { return $d }
     }
-    return '（无简介）'
+    return ''
+}
+
+# ---------- 技能自动分类 ----------
+# 关键词词典：英文按整词匹配（\b），中文直接包含匹配。
+# 想调整分类规则，改这个表即可；也可在 SKILL.md frontmatter 写 category/type/tags 字段优先识别。
+$script:CategoryDefs = @(
+    @{ Name = '开发与工程'; Keywords = @('test', 'debug', 'coding', 'code', 'review', 'git', 'commit', 'refactor', 'typescript', 'python', 'react', 'frontend', 'backend', 'programming', 'lint', '开发', '测试', '调试', '代码', '审查', '编程', '工程', '重构', '构建') },
+    @{ Name = '写作与内容'; Keywords = @('write', 'writing', 'article', 'blog', 'copywriting', 'content', 'essay', 'translate', '写作', '文章', '文案', '内容', '公众号', '小红书', '新媒体', '博客', '润色', '翻译') },
+    @{ Name = '研究与搜索'; Keywords = @('research', 'search', 'investigate', 'literature', 'paper', '学术', '研究', '调研', '搜索', '论文', '文献', '查证') },
+    @{ Name = '办公与效率'; Keywords = @('productivity', 'meeting', 'summary', 'summariz', 'document', 'excel', 'sheet', 'ppt', 'presentation', 'calendar', 'task', 'todo', 'email', '会议', '纪要', '文档', '效率', '办公', '任务', '日程', '邮件', '表格') },
+    @{ Name = '数据分析'; Keywords = @('data', 'analysis', 'analytic', 'statistic', 'dashboard', '数据', '分析', '统计', '图表', '可视化', '报表') },
+    @{ Name = '设计与创意'; Keywords = @('design', 'image', 'poster', 'banner', 'logo', 'illustration', '设计', '图片', '海报', '插画', '视觉', '封面', '创意') },
+    @{ Name = '音视频与媒体'; Keywords = @('video', 'audio', 'media', 'podcast', '视频', '音频', '剪辑', '字幕', '配音', '媒体') },
+    @{ Name = 'Agent 与技能管理'; Keywords = @('agent', 'skill', 'mcp', 'prompt', 'claude', '智能体', '技能', '安装', '模型') },
+    @{ Name = '生活与日常'; Keywords = @('life', 'health', 'travel', 'food', 'fitness', '生活', '健康', '旅行', '美食', '健身', '养生', '菜谱') }
+)
+
+function Test-SkillKeyword {
+    param([string]$Text, [string]$Keyword)
+    if ($Keyword -match '^[\u4e00-\u9fff]') { return $Text.Contains($Keyword) }
+    return ($Text -match ("\b" + [regex]::Escape($Keyword) + "\b"))
+}
+
+function Get-SkillCategory {
+    # 返回技能分类：优先 frontmatter 的 category/type/tags 字段，其次按名称+简介关键词匹配
+    param([string]$SkillDir, [string]$Name, [string]$Description)
+    $md = Join-Path $SkillDir 'SKILL.md'
+    if (Test-Path $md) {
+        $fm = Read-SkillFrontmatter $md
+        foreach ($f in @('category', 'type', 'tags')) {
+            $v = [string]$fm[$f]
+            if ($v) {
+                $vLower = $v.ToLower()
+                # 直接命中分类名
+                foreach ($c in $script:CategoryDefs) {
+                    if ($vLower -eq $c.Name.ToLower()) { return $c.Name }
+                }
+                # 分类字段含关键词
+                foreach ($c in $script:CategoryDefs) {
+                    foreach ($k in $c.Keywords) {
+                        if (Test-SkillKeyword $vLower $k) { return $c.Name }
+                    }
+                }
+            }
+        }
+    }
+    $text = "$Name $Description".ToLower()
+    foreach ($c in $script:CategoryDefs) {
+        foreach ($k in $c.Keywords) {
+            if (Test-SkillKeyword $text $k) { return $c.Name }
+        }
+    }
+    return '未分类'
+}
+
+function Get-SkillListWithCategory {
+    # 返回：技能对象数组（含 Name/Count/Intro/Category），已按分类分好
+    $sharedRoot = Get-SharedRoot
+    if (-not $sharedRoot -or -not (Test-Path $sharedRoot)) { return $null }
+    $skills = @(Get-ChildItem $sharedRoot -Directory -Force | Where-Object { $_.Name -ne '_meta.json' })
+    $result = @()
+    foreach ($s in $skills | Sort-Object Name) {
+        $count = @(Get-ChildItem $s.FullName -Recurse -File -Filter 'SKILL.md' -ErrorAction SilentlyContinue).Count
+        $intro = Get-SkillIntro $s.FullName
+        $cat = Get-SkillCategory $s.FullName $s.Name $intro
+        $result += [pscustomobject]@{ Name = $s.Name; Count = $count; Intro = $intro; Category = $cat }
+    }
+    return $result
 }
 
 function Show-SkillList {
@@ -129,13 +197,46 @@ function Show-SkillList {
     }
     $skills = @(Get-ChildItem $sharedRoot -Directory -Force | Where-Object { $_.Name -ne '_meta.json' })
     if ($skills.Count -eq 0) { Write-Warn "共享库为空: $sharedRoot"; return }
-    Write-Info "共享库技能清单（$($skills.Count) 个）：$sharedRoot"
-    foreach ($s in $skills | Sort-Object Name) {
-        $count = @(Get-ChildItem $s.FullName -Recurse -File -Filter 'SKILL.md' -ErrorAction SilentlyContinue).Count
-        $intro = Get-SkillIntro $s.FullName
-        if ($intro.Length -gt 60) { $intro = $intro.Substring(0, 60) + '…' }
-        Write-Host ("  - {0}  ({1} 个 SKILL.md)  {2}" -f $s.Name, $count, $intro)
+    $list = Get-SkillListWithCategory
+    $cats = @($list | Select-Object -ExpandProperty Category -Unique)
+    Write-Info "共享库技能清单（共 $($list.Count) 个技能，$($cats.Count) 个分类）：$sharedRoot"
+    # 未分类放最后，其余按数量降序
+    $groups = $list | Group-Object Category
+    $ordered = @($groups | Sort-Object @{ Expression = { if ($_.Name -eq '未分类') { -1 } else { $_.Count } }; Descending = $true })
+    foreach ($g in $ordered) {
+        Write-Host ("── {0}（{1}）──" -f $g.Name, $g.Count) -ForegroundColor Cyan
+        foreach ($item in ($g.Group | Sort-Object Name)) {
+            $intro = if ($item.Intro.Length -gt 50) { $item.Intro.Substring(0, 50) + '…' } else { $item.Intro }
+            if (-not $intro) { $intro = '（无简介）' }
+            Write-Host ("  - {0}  ({1} 个 SKILL.md)  {2}" -f $item.Name, $item.Count, $intro)
+        }
     }
+}
+
+function Show-CategoryBrowse {
+    $list = Get-SkillListWithCategory
+    if (-not $list -or $list.Count -eq 0) { Write-Warn '共享库为空。请先安装技能。'; return }
+    $groups = $list | Group-Object Category
+    $ordered = @($groups | Sort-Object @{ Expression = { if ($_.Name -eq '未分类') { -1 } else { $_.Count } }; Descending = $true })
+    Write-Info '技能分类：'
+    for ($i = 0; $i -lt $ordered.Count; $i++) {
+        Write-Host ("  [{0}] {1}（{2} 个技能）" -f ($i + 1), $ordered[$i].Name, $ordered[$i].Count)
+    }
+    $n = 0
+    while ($true) {
+        $raw = (Read-Host '  输入分类编号查看技能（q 返回）').Trim()
+        if ($raw -eq 'q' -or $raw -eq '') { return }
+        if ($raw -match '^\d+$' -and [int]$raw -ge 1 -and [int]$raw -le $ordered.Count) { $n = [int]$raw; break }
+        Write-Warn "请输入 1-$($ordered.Count) 的编号。"
+    }
+    $g = $ordered[$n - 1]
+    Write-Host ("── {0}（{1}）──" -f $g.Name, $g.Count) -ForegroundColor Cyan
+    foreach ($item in ($g.Group | Sort-Object Name)) {
+        $intro = if ($item.Intro.Length -gt 70) { $item.Intro.Substring(0, 70) + '…' } else { $item.Intro }
+        if (-not $intro) { $intro = '（无简介）' }
+        Write-Host ("  - {0}  ({1} 个 SKILL.md)  {2}" -f $item.Name, $item.Count, $intro)
+    }
+    Write-Host ''
 }
 
 function Remove-SkillInteractive {
@@ -370,9 +471,10 @@ function Show-MainMenu {
                 while ($true) {
                     Write-Host ''
                     Write-Info '── 技能管理 ──'
-                    Write-Host '  [a] 列出共享库中的技能（含中文简介）'
+                    Write-Host '  [a] 列出共享库中的技能（按分类分组，含中文简介）'
                     Write-Host '  [b] 从 GitHub / skills.sh 仓库安装技能'
                     Write-Host '  [c] 移除共享库中的技能'
+                    Write-Host '  [d] 按分类浏览技能'
                     Write-Host '  [q] 返回主菜单'
                     $sub = (Read-Host '  请选择').Trim().ToLower()
                     if ($sub -eq 'q' -or $sub -eq '') { break }
@@ -380,6 +482,7 @@ function Show-MainMenu {
                         'a' { Show-SkillList; Write-Host '' }
                         'b' { Install-SkillInteractive }
                         'c' { Remove-SkillInteractive; Write-Host '' }
+                        'd' { Show-CategoryBrowse; Write-Host '' }
                         default { Write-Warn '无效选项。' }
                     }
                 }

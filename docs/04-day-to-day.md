@@ -42,8 +42,10 @@ Copy-Item -Recurse C:\下载\some-skill C:\Users\<你>\skills\shared\some-skill
 
 重启各 Agent 会话后，新技能在所有 Agent 中可见。
 
-> **关于中文简介**：安装时会自动从 SKILL.md 提取简介；英文简介会尝试在线翻译为
-> 中文并缓存在 `_meta.json`。技能管理列表（向导 [3]a）即显示该中文简介；
+> **关于中文简介与自动分类**：安装时会自动从 SKILL.md 提取简介；英文简介会尝试在线翻译为
+> 中文并缓存在 `_meta.json`。技能管理列表（向导 [3]a）按**自动分类**分组显示中文简介
+> （分类依据：SKILL.md frontmatter 的 category/type/tags 字段优先，其次按名称+简介关键词
+> 匹配到开发/写作/研究/办公/数据/设计/音视频/Agent 管理等类别；也可在 [3]d 按分类浏览）。
 > 手动复制的技能没有 `_meta.json`，列表直接显示 SKILL.md 中的 description。
 
 ## 2. 更新一个技能
