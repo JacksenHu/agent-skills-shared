@@ -265,7 +265,9 @@ agent-skills-shared/
     ├── scan-agents.ps1             # 扫描各 Agent 已安装技能（发现未进共享库的技能）
     ├── add-agent.ps1               # 为单个 Agent 建立联接（含去重/冲突处理）
     ├── remove-agent.ps1            # 移除单个 Agent 的联接（回滚）
-    └── verify.ps1                  # 验证所有联接与技能可见性
+    ├── verify.ps1                  # 验证所有联接与技能可见性
+    └── lib\
+        └── duplicate-guard.ps1     # 「同一 Agent 多技能根」重复加载防护（setup/add-agent/verify 共用）
 ```
 
 ## 文档导航
@@ -304,6 +306,7 @@ agent-skills-shared/
 - **共享命运**：在一个 Agent 里删改技能会影响所有 Agent——这是特性，也是风险（见风险文档）。
 - **索引时机**：绝大多数 Agent 在会话启动时扫描技能，改动后需重启会话。
 - **API 配额**：技能更新检测（`check-updates.ps1`）与项目更新检测（`check-project-updates.ps1`）匿名访问 GitHub API 限速 60 次/小时，多技能/频繁检测时可设置 Token 提高配额。
+- **同一 Agent 多技能根 → 技能重复显示**：部分软件（如豆包）会同时扫描多个技能根，若这些根全部接入共享库，每个技能会被重复加载多份（豆包读 `.user_skills` / `Doubao\skills` / `.agents\skills` → 每技能 3 份）。脚本已内置「同源多根」防护：`setup.ps1` / `add-agent.ps1` 接入前自动检测并默认阻止，`verify.ps1` 会提示；建议每个软件只保留一个技能根接入共享库。
 - 本项目面向 Windows；macOS / Linux 用户可用符号链接（`ln -s`）实现同一思路。
 
 ## License
