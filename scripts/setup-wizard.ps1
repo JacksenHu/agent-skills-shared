@@ -7,9 +7,10 @@
   全程交互，无需手写 JSON。主菜单：
     [1] 快速搭建 —— 配置 Agent 并建立共享联接（自动迁移已有技能、智能去重）
     [2] 验证所有 Agent 联接
-    [3] 技能管理（列出 / 移除 / 从 GitHub 仓库安装）
+    [3] 技能管理（列出含中文简介 / 从 GitHub、skills.sh 安装 / 移除）
     [4] 接入 / 移除单个 Agent
-    [5] 帮助与文档
+    [5] 扫描各 Agent 已安装技能（发现未进共享库的技能）
+    [6] 帮助与文档
     [0] 退出
 
   快速搭建内置 11 个常见 Agent 技能路径预设（Doubao、Claude Code、Codex、
@@ -84,18 +85,56 @@ function Get-SharedRoot {
 }
 
 # ---------- 技能管理 ----------
+function Read-SkillFrontmatter {
+    param([string]$SkillMdPath)
+    $text = Get-Content $SkillMdPath -Raw -Encoding UTF8
+    $m = [regex]::Match($text, '(?s)^---\s*\r?\n(.*?)\r?\n---')
+    $meta = [ordered]@{}
+    if ($m.Success) {
+        foreach ($line in ($m.Groups[1].Value -split "`r?`n")) {
+            $kv = [regex]::Match($line, '^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*?)\s*$')
+            if ($kv.Success) {
+                $meta[$kv.Groups[1].Value] = $kv.Groups[2].Value.Trim().Trim('"').Trim("'")
+            }
+        }
+    }
+    return $meta
+}
+
+function Get-SkillIntro {
+    # 返回技能的中文简介：优先 _meta.json（安装时生成），否则读 SKILL.md 的 description
+    param([string]$SkillDir)
+    $metaFile = Join-Path $SkillDir '_meta.json'
+    if (Test-Path $metaFile) {
+        try {
+            $m = Get-Content $metaFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($m.descriptionZh) { return [string]$m.descriptionZh }
+            if ($m.description)  { return [string]$m.description }
+        } catch { }
+    }
+    $md = Join-Path $SkillDir 'SKILL.md'
+    if (Test-Path $md) {
+        $fm = Read-SkillFrontmatter $md
+        $d = [string]$fm['description']
+        if ($d) { return $d }
+    }
+    return '（无简介）'
+}
+
 function Show-SkillList {
     $sharedRoot = Get-SharedRoot
     if (-not $sharedRoot -or -not (Test-Path $sharedRoot)) {
         Write-Warn '共享库不存在。请先执行 [1] 快速搭建，或检查配置。'
         return
     }
-    $skills = @(Get-ChildItem $sharedRoot -Directory -Force)
+    $skills = @(Get-ChildItem $sharedRoot -Directory -Force | Where-Object { $_.Name -ne '_meta.json' })
     if ($skills.Count -eq 0) { Write-Warn "共享库为空: $sharedRoot"; return }
     Write-Info "共享库技能清单（$($skills.Count) 个）：$sharedRoot"
     foreach ($s in $skills | Sort-Object Name) {
         $count = @(Get-ChildItem $s.FullName -Recurse -File -Filter 'SKILL.md' -ErrorAction SilentlyContinue).Count
-        Write-Host ("  - {0}  ({1} 个 SKILL.md)" -f $s.Name, $count)
+        $intro = Get-SkillIntro $s.FullName
+        if ($intro.Length -gt 60) { $intro = $intro.Substring(0, 60) + '…' }
+        Write-Host ("  - {0}  ({1} 个 SKILL.md)  {2}" -f $s.Name, $count, $intro)
     }
 }
 
@@ -130,7 +169,9 @@ function Remove-SkillInteractive {
 }
 
 function Install-SkillInteractive {
-    Write-Info '从 GitHub 仓库安装技能（如 https://github.com/hgta23/findskills）'
+    Write-Info '从 GitHub / skills.sh 仓库安装技能'
+    Write-Host '  示例：https://github.com/hgta23/findskills'
+    Write-Host '        https://skills.sh/s/vercel-labs/skills/find-skills'
     $url = (Read-Host '  输入仓库链接（q 取消）').Trim()
     if ($url -eq '' -or $url -eq 'q') { Write-Host '已取消。'; return }
     & $installScript -RepoUrl $url
@@ -287,13 +328,16 @@ function Show-Help {
   常用命令：
     快速搭建（非交互）  .\scripts\setup.ps1
     验证                .\scripts\verify.ps1
+    扫描 Agent 技能     .\scripts\scan-agents.ps1
     接入 Agent          .\scripts\add-agent.ps1 -AgentName 名称 -RootPath 路径
     移除 Agent          .\scripts\remove-agent.ps1 -AgentName 名称 -RootPath 路径
     安装技能（仓库链接）.\scripts\install-skill.ps1 -RepoUrl https://github.com/owner/repo
+    安装技能（skills.sh）.\scripts\install-skill.ps1 -RepoUrl https://skills.sh/s/owner/repo
 
   提示：
     - 迁移/去重/冲突策略见 setup.ps1 输出与 docs/05
     - 仓库链接安装到共享库后，重启各 Agent 会话生效
+    - 在 Agent 内手动安装的技能会落在该 Agent 目录，可用 [5] 扫描发现并迁移
 '@
     Write-Host ''
 }
@@ -310,10 +354,11 @@ function Show-MainMenu {
         Write-Host '  [2] 验证所有 Agent 联接'
         Write-Host '  [3] 技能管理'
         Write-Host '  [4] 接入 / 移除 Agent'
-        Write-Host '  [5] 帮助与文档'
+        Write-Host '  [5] 扫描各 Agent 已安装技能（发现未进共享库的技能）'
+        Write-Host '  [6] 帮助与文档'
         Write-Host '  [0] 退出'
         Write-Host ''
-        $choice = (Read-Host '  请选择 [0-5]').Trim()
+        $choice = (Read-Host '  请选择 [0-6]').Trim()
 
         switch ($choice) {
             '1' { Invoke-SetupFlow }
@@ -325,8 +370,8 @@ function Show-MainMenu {
                 while ($true) {
                     Write-Host ''
                     Write-Info '── 技能管理 ──'
-                    Write-Host '  [a] 列出共享库中的技能'
-                    Write-Host '  [b] 从 GitHub 仓库安装技能'
+                    Write-Host '  [a] 列出共享库中的技能（含中文简介）'
+                    Write-Host '  [b] 从 GitHub / skills.sh 仓库安装技能'
                     Write-Host '  [c] 移除共享库中的技能'
                     Write-Host '  [q] 返回主菜单'
                     $sub = (Read-Host '  请选择').Trim().ToLower()
@@ -355,9 +400,13 @@ function Show-MainMenu {
                     }
                 }
             }
-            '5' { Show-Help }
+            '5' {
+                if (-not (Test-Path $ConfigPath)) { Write-Warn '还没有配置。请先 [1] 快速搭建。' }
+                else { & (Join-Path $PSScriptRoot 'scan-agents.ps1') -ConfigPath $ConfigPath }
+            }
+            '6' { Show-Help }
             '0' { Write-Ok '再见！'; return }
-            default { Write-Warn '无效选项，请输入 0-5。' }
+            default { Write-Warn '无效选项，请输入 0-6。' }
         }
     }
 }
