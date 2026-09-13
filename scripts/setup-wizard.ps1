@@ -18,6 +18,9 @@
   Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy 等，
   均来自官方文档或实测），自动探测本机状态，输入 d 一键全选已检测到的。
 
+  首次启动自动在桌面创建「统一技能库管理」快捷方式（已存在则跳过），
+  之后双击即可打开管理控制台。
+
 .EXAMPLE
   .\scripts\setup-wizard.ps1          # 启动交互控制台
 #>
@@ -485,6 +488,30 @@ function Show-Help {
     Write-Host ''
 }
 
+# ---------- 桌面快捷方式（首次启动自动创建） ----------
+function New-DesktopShortcut {
+    # 在桌面创建「统一技能库管理」快捷方式；已存在则跳过，返回是否新建
+    $shortcutName = '统一技能库管理.lnk'
+    try {
+        $desktop = [Environment]::GetFolderPath('Desktop')
+        if (-not $desktop) { $desktop = Join-Path $env:USERPROFILE 'Desktop' }
+        $lnk = Join-Path $desktop $shortcutName
+        if (Test-Path $lnk) { return $false }
+        $shell = New-Object -ComObject WScript.Shell
+        $sc = $shell.CreateShortcut($lnk)
+        $sc.TargetPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $sc.Arguments = "-NoExit -ExecutionPolicy Bypass -File `"$(Join-Path $PSScriptRoot 'setup-wizard.ps1')`""
+        $sc.WorkingDirectory = Split-Path $PSScriptRoot -Parent
+        $sc.Description = '统一技能库 · 管理控制台（一个技能，只装一次，所有 Agent 共用）'
+        $sc.IconLocation = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe,0"
+        $sc.Save()
+        return $true
+    } catch {
+        Write-Warn "创建桌面快捷方式失败（不影响使用）：$($_.Exception.Message)"
+        return $false
+    }
+}
+
 # ---------- 主菜单 ----------
 function Show-MainMenu {
     while ($true) {
@@ -556,6 +583,15 @@ function Show-MainMenu {
             default { Write-Warn '无效选项，请输入 0-7。' }
         }
     }
+}
+
+# 首次启动：自动创建桌面快捷方式（已存在则跳过）
+if (New-DesktopShortcut) {
+    $desktop = [Environment]::GetFolderPath('Desktop')
+    if (-not $desktop) { $desktop = Join-Path $env:USERPROFILE 'Desktop' }
+    Write-Ok "已在桌面创建快捷方式：$(Join-Path $desktop '统一技能库管理.lnk')"
+    Write-Host '  以后双击桌面「统一技能库管理」即可打开管理控制台；不需要可自行删除。' -ForegroundColor Cyan
+    Write-Host ''
 }
 
 Show-MainMenu

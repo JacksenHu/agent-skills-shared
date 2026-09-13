@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 780" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+  <title>快速使用流程（含桌面快捷方式）</title>
+  <desc>获取项目 → 放行脚本 → 首次启动向导自动创建桌面快捷方式 → 以后双击快捷方式进入管理控制台</desc>
+  <rect x="0" y="0" width="1240" height="780" fill="#F8FAFC"/>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563EB"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981"/>
+    </marker>
+  </defs>
+
+  <text x="620" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">快速使用 · 从获取到日常（含桌面快捷方式）</text>
+  <text x="620" y="62" text-anchor="middle" font-size="13" fill="#64748B">第一次启动向导会自动在桌面创建「统一技能库管理」快捷方式 · 以后双击即可进入管理控制台</text>
+
+  <!-- 第一行：获取与首次启动四步 -->
+  <rect x="60" y="90" width="270" height="120" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="195" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">① 获取项目</text>
+  <text x="195" y="146" text-anchor="middle" font-size="11" fill="#475569">GitHub 首页 → Code → Download ZIP</text>
+  <text x="195" y="166" text-anchor="middle" font-size="11" fill="#475569">解压到任意目录（或 git clone）</text>
+  <text x="195" y="186" text-anchor="middle" font-size="11" fill="#475569">进入解压后的项目文件夹</text>
+
+  <rect x="350" y="90" width="270" height="120" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="485" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">② 放行脚本（仅首次）</text>
+  <text x="485" y="146" text-anchor="middle" font-size="11" fill="#475569" font-family="Consolas, monospace">Set-ExecutionPolicy RemoteSigned</text>
+  <text x="485" y="166" text-anchor="middle" font-size="11" fill="#475569">-Scope CurrentUser（只影响当前用户）</text>
+  <text x="485" y="186" text-anchor="middle" font-size="11" fill="#475569">之前放行过可跳过</text>
+
+  <rect x="640" y="90" width="270" height="120" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="775" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">③ 首次启动向导</text>
+  <text x="775" y="146" text-anchor="middle" font-size="11" fill="#475569" font-family="Consolas, monospace">.\scripts\setup-wizard.ps1</text>
+  <text x="775" y="166" text-anchor="middle" font-size="11" fill="#475569">出现首页主菜单即运行成功</text>
+  <text x="775" y="186" text-anchor="middle" font-size="11" fill="#475569">按 [1] 快速搭建完成首次配置</text>
+
+  <rect x="930" y="90" width="270" height="120" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1065" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">④ 自动创建桌面快捷方式</text>
+  <text x="1065" y="146" text-anchor="middle" font-size="11" fill="#475569">桌面出现「统一技能库管理」图标</text>
+  <text x="1065" y="166" text-anchor="middle" font-size="11" fill="#475569">仅在首次启动时创建</text>
+  <text x="1065" y="186" text-anchor="middle" font-size="11" fill="#059669">已存在则跳过，不重复创建</text>
+
+  <!-- 箭头 ①→②→③→④ -->
+  <g stroke="#2563EB" stroke-width="2" fill="none">
+    <line x1="330" y1="150" x2="342" y2="150" marker-end="url(#arr)"/>
+    <line x1="620" y1="150" x2="632" y2="150" marker-end="url(#arr)"/>
+    <line x1="910" y1="150" x2="922" y2="150" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- 快捷方式说明条 -->
+  <rect x="170" y="260" width="900" height="130" rx="12" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+  <text x="620" y="292" text-anchor="middle" font-size="15" font-weight="700" fill="#065F46">以后双击桌面「统一技能库管理」＝ 打开管理控制台（等同运行向导）</text>
+  <text x="620" y="320" text-anchor="middle" font-size="11" fill="#475569">主菜单：搭建 / 验证 / 技能管理（分类·仓库安装·移除）/ 接入移除 Agent / 扫描已装技能 / 检查版本更新</text>
+  <text x="620" y="342" text-anchor="middle" font-size="11" fill="#B45309">注意：移动或删除项目文件夹后快捷方式会失效 → 删掉旧快捷方式，再启动一次向导即可自动重建</text>
+  <text x="620" y="364" text-anchor="middle" font-size="11" fill="#475569">不需要快捷方式可直接删除，不影响任何功能</text>
+
+  <!-- 箭头 ④→快捷方式条 -->
+  <g stroke="#10B981" stroke-width="2" fill="none">
+    <line x1="1065" y1="210" x2="900" y2="252" marker-end="url(#arrG)"/>
+  </g>
+
+  <!-- 第三行：日常使用五个入口 -->
+  <rect x="60" y="450" width="210" height="110" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="165" y="480" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">[1] 快速搭建</text>
+  <text x="165" y="504" text-anchor="middle" font-size="11" fill="#475569">配置 Agent 路径</text>
+  <text x="165" y="524" text-anchor="middle" font-size="11" fill="#475569">迁移已有技能 + 建联接</text>
+  <text x="165" y="544" text-anchor="middle" font-size="11" fill="#475569">预设 12 项常见 Agent</text>
+
+  <rect x="285" y="450" width="210" height="110" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="390" y="480" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">[2] 验证联接</text>
+  <text x="390" y="504" text-anchor="middle" font-size="11" fill="#475569">每个 Agent 可见多少技能</text>
+  <text x="390" y="524" text-anchor="middle" font-size="11" fill="#475569">异常项标 [FAIL]</text>
+  <text x="390" y="544" text-anchor="middle" font-size="11" fill="#475569">建议每次改动后跑一次</text>
+
+  <rect x="510" y="450" width="210" height="110" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="615" y="480" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">[3] 技能管理</text>
+  <text x="615" y="504" text-anchor="middle" font-size="11" fill="#475569">a 分类列出（中文简介）</text>
+  <text x="615" y="524" text-anchor="middle" font-size="11" fill="#475569">b 仓库链接安装</text>
+  <text x="615" y="544" text-anchor="middle" font-size="11" fill="#475569">c 移除 / d 按分类浏览</text>
+
+  <rect x="735" y="450" width="210" height="110" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="840" y="480" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">[5] 扫描已装技能</text>
+  <text x="840" y="504" text-anchor="middle" font-size="11" fill="#475569">检查各 Agent 目录</text>
+  <text x="840" y="524" text-anchor="middle" font-size="11" fill="#475569">发现「独有」技能并迁移</text>
+  <text x="840" y="544" text-anchor="middle" font-size="11" fill="#475569">标注 已共享/冲突/独有</text>
+
+  <rect x="960" y="450" width="210" height="110" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1065" y="480" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">[6] 检查版本更新</text>
+  <text x="1065" y="504" text-anchor="middle" font-size="11" fill="#475569">对比 GitHub 最新提交</text>
+  <text x="1065" y="524" text-anchor="middle" font-size="11" fill="#475569">[更新]/[最新]/[无基准]/[不可查]</text>
+  <text x="1065" y="544" text-anchor="middle" font-size="11" fill="#475569">可选 -Update 自动升级</text>
+
+  <!-- 箭头 快捷方式条→第三行 -->
+  <g stroke="#2563EB" stroke-width="2" fill="none">
+    <line x1="620" y1="390" x2="620" y2="442" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- 更新项目提示条 -->
+  <rect x="170" y="620" width="900" height="100" rx="10" fill="#FFF7ED" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="620" y="652" text-anchor="middle" font-size="15" font-weight="700" fill="#92400E">更新项目本身（获取新版向导 / 脚本 / 图解）</text>
+  <text x="620" y="678" text-anchor="middle" font-size="11" fill="#475569">git 方式：在项目目录执行 git pull；ZIP 方式：重新下载解压（不要覆盖你生成的 config\agents.json）</text>
+  <text x="620" y="700" text-anchor="middle" font-size="11" fill="#92400E">更新后启动一次向导即可刷新快捷方式（指向最新脚本路径）</text>
+
+  <text x="620" y="762" text-anchor="middle" font-size="11" fill="#94A3B8">图解：快速使用全流程 · 首次启动自动创建桌面快捷方式，日常双击即用</text>
+</svg>
