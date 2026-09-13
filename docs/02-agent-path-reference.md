@@ -5,7 +5,7 @@
 
 ## Windows 用户级技能目录
 
-> 以下 11 项已**预设**在 `setup-wizard.ps1` 的选择列表中（自动探测本机状态，`d` 一键全选已检测到的）。
+> 以下 12 项已**预设**在 `setup-wizard.ps1` 的选择列表中（自动探测本机状态，`d` 一键全选已检测到的）。
 
 | Agent | 用户级技能目录 | 项目级技能目录 | 来源 |
 | --- | --- | --- | --- |
@@ -20,6 +20,7 @@
 | **Trae CN（国内版）** ✅ | `%USERPROFILE%\.trae-cn\skills\` | `.trae\skills\` | [Trae CN 官方文档](https://docs.trae.cn/ide_skills) |
 | **GitHub Copilot** ✅ | `%USERPROFILE%\.copilot\skills\`、`%USERPROFILE%\.agents\skills\` | `.github\skills\`、`.agents\skills\` | [GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/add-skills) |
 | **Zed** ✅ | `%USERPROFILE%\.agents\skills\`（Global） | `.agents\skills\` | [Zed 官方文档](https://zed.dev/docs/ai/skills) |
+| **WorkBuddy** ✅ | `%USERPROFILE%\.workbuddy\skills\` | — | 本机实测（用户指定） |
 
 > `%LOCALAPPDATA%` = `C:\Users\<你>\AppData\Local`；`%USERPROFILE%` = `C:\Users\<你>`。
 
@@ -45,7 +46,7 @@
 ## 如何确认你机器上的真实路径
 
 ```powershell
-# 列出可能存在的技能根（覆盖预设清单全部 11 项）
+# 列出可能存在的技能根（覆盖预设清单全部 12 项）
 $paths = @(
   "$env:LOCALAPPDATA\Doubao\User Data\Default\.doubao\agent_mode\workspace\.user_skills",
   "$env:USERPROFILE\Doubao\skills",
@@ -57,7 +58,8 @@ $paths = @(
   "$env:USERPROFILE\.openclaw\workspace\skills",
   "$env:USERPROFILE\.trae\skills",
   "$env:USERPROFILE\.trae-cn\skills",
-  "$env:USERPROFILE\.copilot\skills"
+  "$env:USERPROFILE\.copilot\skills",
+  "$env:USERPROFILE\.workbuddy\skills"
 )
 $paths | Where-Object { Test-Path $_ } | ForEach-Object { Write-Output $_ }
 

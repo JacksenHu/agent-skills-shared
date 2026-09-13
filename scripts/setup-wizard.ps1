@@ -13,9 +13,9 @@
     [6] 帮助与文档
     [0] 退出
 
-  快速搭建内置 11 个常见 Agent 技能路径预设（Doubao、Claude Code、Codex、
-  Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，
-  均来自官方文档），自动探测本机状态，输入 d 一键全选已检测到的。
+  快速搭建内置 12 个常见 Agent 技能路径预设（Doubao、Claude Code、Codex、
+  Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy 等，
+  均来自官方文档或实测），自动探测本机状态，输入 d 一键全选已检测到的。
 
 .EXAMPLE
   .\scripts\setup-wizard.ps1          # 启动交互控制台
@@ -360,7 +360,8 @@ function Invoke-SetupFlow {
             @{ Key = 'openclaw';            Label = 'OpenClaw';                Path = (Join-Path $env:USERPROFILE '.openclaw\workspace\skills') },
             @{ Key = 'trae';                Label = 'Trae（国际版）';          Path = (Join-Path $env:USERPROFILE '.trae\skills') },
             @{ Key = 'trae-cn';             Label = 'Trae CN（国内版）';       Path = (Join-Path $env:USERPROFILE '.trae-cn\skills') },
-            @{ Key = 'copilot';             Label = 'GitHub Copilot';          Path = (Join-Path $env:USERPROFILE '.copilot\skills') }
+            @{ Key = 'copilot';             Label = 'GitHub Copilot';          Path = (Join-Path $env:USERPROFILE '.copilot\skills') },
+            @{ Key = 'workbuddy';           Label = 'WorkBuddy';               Path = (Join-Path $env:USERPROFILE '.workbuddy\skills') }
         )
         $choices = @()
         $detectedFlags = @()

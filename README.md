@@ -98,8 +98,8 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 ```
 
 打开**首页主菜单**：快速搭建 / 验证 / 技能管理（**按分类分组列出**、从 GitHub 仓库链接安装、移除、按分类浏览）/
-接入移除 Agent / 扫描各 Agent 已安装技能 / 帮助。搭建时**预设 11 个常见 Agent 技能路径**（Doubao、Claude Code、
-Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，均来自官方文档），
+接入移除 Agent / 扫描各 Agent 已安装技能 / 帮助。搭建时**预设 12 个常见 Agent 技能路径**（Doubao、Claude Code、
+Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy 等，均来自官方文档或实测），
 自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认，
 自动完成：生成配置 → 迁移已有技能（**内容一致自动去重、内容不同提示冲突**）
 → 建立联接 → 验证，无需手写任何 JSON。
@@ -168,7 +168,7 @@ agent-skills-shared/
 │   ├── rollback-flow.svg          # 回滚流程
 │   └── skills-management.svg      # 技能管理（分类/仓库安装/移除/浏览/扫描）
 ├── config/
-│   └── agents.example.json        # Agent 路径配置模板（含 11 项预设）
+│   └── agents.example.json        # Agent 路径配置模板（含 12 项预设）
 └── scripts/
     ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/扫描/仓库安装）
     ├── setup.ps1                   # 一键搭建：迁移（智能去重）+ 建联接 + 验证
