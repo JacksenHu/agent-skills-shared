@@ -144,7 +144,18 @@ try {
         if ($Token) { $authUrl = "https://${Token}@github.com/$owner/$repo.git" }
         Write-Host "git clone --depth 1 $authUrl  …"
         $cloneDir = Join-Path $tmpDir 'clone'
-        & git clone --depth 1 --branch $branch $authUrl $cloneDir 2>&1 | ForEach-Object { Write-Host "  $_" }
+        # PS 5.1：外部命令 stderr 在 $ErrorActionPreference='Stop' 下会被当成终止错误抛出，
+        # 故 clone 期间临时降级；git 的进度/提示信息走 stderr，属正常输出，仅取干净文本显示。
+        $oldEap = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            & git clone --depth 1 --branch $branch $authUrl $cloneDir 2>&1 | ForEach-Object {
+                if ($_ -is [System.Management.Automation.ErrorRecord]) { Write-Host ("  " + $_.Exception.Message) -ForegroundColor DarkGray }
+                else { Write-Host ("  " + $_) -ForegroundColor DarkGray }
+            }
+        } finally {
+            $ErrorActionPreference = $oldEap
+        }
         if (Test-Path (Join-Path $cloneDir 'README.md')) { $srcRoot = $cloneDir }
     }
     # 方式 2：下载 zip（codeload，公开仓库无需登录）
@@ -178,6 +189,18 @@ try {
     }
 
     # ---------- 对比并覆盖（排除用户配置） ----------
+    # 内容哈希：文本文件统一行尾（CRLF→LF）再哈希，忽略纯行尾差异
+    # （git clone 在 Windows 默认 autocrlf 会把工作区转成 CRLF，而 ZIP 解压是 LF，
+    #   直接比字节会把所有文件误判为不同）
+    function Get-ContentHash([string]$Path) {
+        $bytes = [IO.File]::ReadAllBytes($Path)
+        $sha = [Security.Cryptography.SHA256]::Create()
+        if ($bytes -contains 0) {
+            return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-', '')
+        }
+        $text = [Text.Encoding]::UTF8.GetString($bytes).Replace("`r`n", "`n")
+        return ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text)))).Replace('-', '')
+    }
     Write-Host ''
     Write-Host '比对远程文件与本地差异…' -ForegroundColor Cyan
     $newFiles = @(Get-ChildItem $srcRoot -Recurse -File -Force | Where-Object {
@@ -190,8 +213,8 @@ try {
         if ($rel -ieq 'config/agents.json') { continue }   # 用户配置绝不覆盖
         $dest = Join-Path $ProjectRoot $rel
         if (Test-Path $dest) {
-            $h1 = (Get-FileHash $f.FullName -Algorithm SHA256).Hash
-            $h2 = (Get-FileHash $dest -Algorithm SHA256).Hash
+            $h1 = Get-ContentHash $f.FullName
+            $h2 = Get-ContentHash $dest
             if ($h1 -eq $h2) { $same++; continue }
         }
         $changed += [pscustomobject]@{ Rel = $rel; Src = $f.FullName; Dest = $dest }
