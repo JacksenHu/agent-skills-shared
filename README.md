@@ -85,13 +85,21 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 勾选要接入的 Agent（脚本会自动探测本机已装的，输入 `d` 一键全选）→ 确认后自动完成
 **迁移已有技能 → 建立联接 → 验证**。最后重启各 Agent 会话，技能即全部生效。
 
-> 💡 之后每次使用都运行 `.\scripts\setup-wizard.ps1` 这一个入口即可：
+**首次启动自动创建桌面快捷方式**：第一次运行向导时，桌面会自动出现
+「统一技能库管理」快捷方式，以后**双击它即可打开管理控制台**（等同运行向导），
+不需要可自行删除。若移动/删除了项目文件夹导致快捷方式失效，删掉旧快捷方式、
+再启动一次向导即可自动重建。
+
+> 💡 之后每次使用，双击桌面「统一技能库管理」，或运行 `.\.\scripts\setup-wizard.ps1`：
 > 加装技能选 [3]b、查看分类选 [3]a、扫描各 Agent 已装技能选 [5]、检测升级选 [6]。
 > 更新项目：git clone 方式 `git pull`；ZIP 方式重新下载解压（**别覆盖**你生成的 `config\agents.json`）。
 
+![快速使用流程](diagrams/quickstart-flow.svg)
+
 ## 使用项目（日常操作）
 
-**方式 A（推荐）· 交互式控制台，全程只需选择：**
+**方式 A（推荐）· 交互式控制台，全程只需选择**（首次启动后，双击桌面
+「统一技能库管理」即可进入，或手动运行下面命令）：
 
 ```powershell
 .\scripts\setup-wizard.ps1
@@ -182,7 +190,8 @@ agent-skills-shared/
 │   ├── update-flow.svg            # 日常更新流程
 │   ├── rollback-flow.svg          # 回滚流程
 │   ├── skills-management.svg      # 技能管理（分类/仓库安装/移除/浏览/扫描）
-│   └── check-updates-flow.svg     # 技能版本更新检测流程
+│   ├── check-updates-flow.svg     # 技能版本更新检测流程
+│   └── quickstart-flow.svg        # 快速使用流程（含桌面快捷方式）
 ├── config/
 │   └── agents.example.json        # Agent 路径配置模板（含 12 项预设）
 └── scripts/
@@ -215,6 +224,7 @@ agent-skills-shared/
 | [`diagrams/update-flow.svg`](diagrams/update-flow.svg) | 日常使用流程 |
 | [`diagrams/skills-management.svg`](diagrams/skills-management.svg) | 技能管理（分类/仓库安装/移除/浏览/扫描） |
 | [`diagrams/check-updates-flow.svg`](diagrams/check-updates-flow.svg) | 技能版本更新检测流程 |
+| [`diagrams/quickstart-flow.svg`](diagrams/quickstart-flow.svg) | 快速使用流程（获取项目 → 放行 → 首次启动建快捷方式 → 日常菜单） |
 | [`diagrams/rollback-flow.svg`](diagrams/rollback-flow.svg) | 回滚流程 |
 
 ## 环境要求

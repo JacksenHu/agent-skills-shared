@@ -31,6 +31,10 @@ cd C:\agent-skills-shared        # 换成你的实际目录
 .\scripts\setup-wizard.ps1
 ```
 
+**首次启动会自动创建桌面快捷方式**：桌面出现「统一技能库管理」图标，
+以后**双击它即可打开管理控制台**（等同运行向导）；不需要可自行删除。
+若移动/删除了项目文件夹导致快捷方式失效，删掉旧快捷方式、再启动一次向导即可自动重建。
+
 > 更新项目：git 方式 `git pull`；ZIP 方式重新下载解压后，**不要覆盖**你生成的 `config\agents.json`。
 
 ## 1. 准备配置文件
@@ -39,6 +43,7 @@ cd C:\agent-skills-shared        # 换成你的实际目录
 
 ```powershell
 .\scripts\setup-wizard.ps1
+# 首次运行后，也可以直接双击桌面「统一技能库管理」打开
 ```
 
 流程：脚本自动探测本机常见 Agent 技能目录（Doubao / Claude Code / Codex / Cursor…，
@@ -129,6 +134,8 @@ notepad config\agents.json
 ## 6. 图解
 
 ![搭建流程](setup-flow.svg)
+
+![快速使用流程（含桌面快捷方式）](quickstart-flow.svg)
 
 ## 6.1 从 GitHub / skills.sh 仓库一键安装技能
 
