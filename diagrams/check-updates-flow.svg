@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 780" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+  <title>技能版本更新检测</title>
+  <desc>check-updates.ps1：读取 _meta.json 版本基准 → GitHub API 对比最新提交 → 判定更新 → 自动升级</desc>
+  <rect x="0" y="0" width="1240" height="780" fill="#F8FAFC"/>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563EB"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981"/>
+    </marker>
+  </defs>
+
+  <text x="620" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">技能版本更新检测（check-updates.ps1）</text>
+  <text x="620" y="62" text-anchor="middle" font-size="13" fill="#64748B">主菜单 [6] 检查技能版本更新 · 只检测「从 GitHub 仓库安装」的技能 · 安装时已记录版本基准 commitSha</text>
+
+  <!-- 第一行：流程四步 -->
+  <rect x="60" y="90" width="260" height="120" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="190" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">① 遍历共享库技能目录</text>
+  <text x="190" y="146" text-anchor="middle" font-size="11" fill="#475569">读取每个技能目录的 _meta.json</text>
+  <text x="190" y="166" text-anchor="middle" font-size="11" fill="#475569">提取 source（仓库链接）</text>
+  <text x="190" y="186" text-anchor="middle" font-size="11" fill="#475569">与 commitSha（本地版本基准）</text>
+
+  <rect x="370" y="90" width="260" height="120" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="500" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">② 按来源仓库分组</text>
+  <text x="500" y="146" text-anchor="middle" font-size="11" fill="#475569">owner/repo 为键</text>
+  <text x="500" y="166" text-anchor="middle" font-size="11" fill="#475569">同一仓库多个技能只查一次</text>
+  <text x="500" y="186" text-anchor="middle" font-size="11" fill="#475569">节省 GitHub API 请求</text>
+
+  <rect x="680" y="90" width="260" height="120" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="810" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">③ GitHub API 查询远程</text>
+  <text x="810" y="146" text-anchor="middle" font-size="11" fill="#475569" font-family="Consolas, monospace">GET /repos/o/r/commits?per_page=1</text>
+  <text x="810" y="166" text-anchor="middle" font-size="11" fill="#475569">返回默认分支最新提交 SHA</text>
+  <text x="810" y="186" text-anchor="middle" font-size="11" fill="#F59E0B">匿名限速 60 次/小时（每仓库 1 次）</text>
+
+  <rect x="990" y="90" width="220" height="120" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1100" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1D4ED8">④ 对比 commitSha</text>
+  <text x="1100" y="146" text-anchor="middle" font-size="11" fill="#475569">本地基准 vs 远程最新</text>
+  <text x="1100" y="166" text-anchor="middle" font-size="11" fill="#475569">一致 → 已最新</text>
+  <text x="1100" y="186" text-anchor="middle" font-size="11" fill="#B91C1C">不一致 → 有更新</text>
+
+  <!-- 箭头 ①→②→③→④ -->
+  <g stroke="#2563EB" stroke-width="2" fill="none">
+    <line x1="320" y1="150" x2="362" y2="150" marker-end="url(#arr)"/>
+    <line x1="630" y1="150" x2="672" y2="150" marker-end="url(#arr)"/>
+    <line x1="940" y1="150" x2="982" y2="150" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- 判定：无来源技能 -->
+  <rect x="60" y="280" width="300" height="120" rx="12" fill="#FFF7ED" stroke="#F59E0B" stroke-width="2"/>
+  <text x="210" y="316" text-anchor="middle" font-size="15" font-weight="700" fill="#92400E">无 GitHub 来源（迁移/市场安装）</text>
+  <text x="210" y="344" text-anchor="middle" font-size="11" fill="#475569">无法远程对比，仅显示本地版本号</text>
+  <text x="210" y="364" text-anchor="middle" font-size="11" fill="#92400E">_meta.json 有 version 字段时可见（如 WorkBuddy）</text>
+  <text x="210" y="384" text-anchor="middle" font-size="11" fill="#64748B">想纳入检测 → 用 [3]b 从仓库链接重新安装</text>
+
+  <!-- 判定：有来源技能（主流程） -->
+  <rect x="470" y="280" width="300" height="120" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+  <text x="620" y="316" text-anchor="middle" font-size="15" font-weight="700" fill="#1D4ED8">有 GitHub 来源（可检测）</text>
+  <text x="620" y="344" text-anchor="middle" font-size="11" fill="#475569">按 commitSha 对比结果分四类 ↓</text>
+  <text x="620" y="372" text-anchor="middle" font-size="12" fill="#1E40AF">每个技能目录都由 _meta.json 记录来源</text>
+
+  <!-- 四个状态框 -->
+  <rect x="60" y="470" width="270" height="110" rx="10" fill="#FEF2F2" stroke="#F87171" stroke-width="1.5"/>
+  <text x="195" y="500" text-anchor="middle" font-size="14" font-weight="700" fill="#B91C1C">[更新] 本地 ≠ 远程</text>
+  <text x="195" y="524" text-anchor="middle" font-size="11" fill="#7F1D1D">仓库有新提交 → 建议升级</text>
+  <text x="195" y="546" text-anchor="middle" font-size="11" fill="#475569">显示本地/远程 SHA 前 12 位</text>
+
+  <rect x="355" y="470" width="270" height="110" rx="10" fill="#ECFDF5" stroke="#34D399" stroke-width="1.5"/>
+  <text x="490" y="500" text-anchor="middle" font-size="14" font-weight="700" fill="#065F46">[最新] 本地 = 远程</text>
+  <text x="490" y="524" text-anchor="middle" font-size="11" fill="#047857">已是最新版本，无需处理</text>
+  <text x="490" y="546" text-anchor="middle" font-size="11" fill="#475569">重启会话前先跑一次本检测</text>
+
+  <rect x="650" y="470" width="270" height="110" rx="10" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="785" y="500" text-anchor="middle" font-size="14" font-weight="700" fill="#92400E">[无基准] 有来源无 commitSha</text>
+  <text x="785" y="524" text-anchor="middle" font-size="11" fill="#B45309">旧版安装未记录版本基准</text>
+  <text x="785" y="546" text-anchor="middle" font-size="11" fill="#475569">重新安装一次即可建立基准</text>
+
+  <rect x="945" y="470" width="270" height="110" rx="10" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="1080" y="500" text-anchor="middle" font-size="14" font-weight="700" fill="#475569">[不可查] 404 / 限速 / 异常</text>
+  <text x="1080" y="524" text-anchor="middle" font-size="11" fill="#64748B">仓库不存在、私有或网络异常</text>
+  <text x="1080" y="546" text-anchor="middle" font-size="11" fill="#64748B">限速 → -Token 或 GITHUB_TOKEN</text>
+
+  <!-- 箭头 判定→状态框 -->
+  <g stroke="#2563EB" stroke-width="2" fill="none">
+    <line x1="620" y1="400" x2="620" y2="462" marker-end="url(#arr)"/>
+  </g>
+  <g stroke="#94A3B8" stroke-width="1.5" fill="none" stroke-dasharray="6 4">
+    <line x1="470" y1="340" x2="368" y2="340" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- 升级动作条 -->
+  <rect x="240" y="630" width="760" height="100" rx="10" fill="#F0FDF4" stroke="#10B981" stroke-width="2"/>
+  <text x="620" y="662" text-anchor="middle" font-size="15" font-weight="700" fill="#065F46">有更新 → 升级（自动或手动）</text>
+  <text x="620" y="688" text-anchor="middle" font-size="11" fill="#475569">自动：向导 [6] 输入 y / .\scripts\check-updates.ps1 -Update（逐个 install-skill.ps1 -Replace）</text>
+  <text x="620" y="710" text-anchor="middle" font-size="11" fill="#065F46">手动：.\scripts\install-skill.ps1 -RepoUrl https://github.com/&lt;owner&gt;/&lt;repo&gt; -Replace → 重启各 Agent 会话生效</text>
+
+  <!-- 箭头 状态框→升级条 -->
+  <g stroke="#10B981" stroke-width="2" fill="none">
+    <line x1="195" y1="580" x2="430" y2="622" marker-end="url(#arrG)"/>
+    <line x1="620" y1="580" x2="620" y2="622" marker-end="url(#arrG)"/>
+  </g>
+
+  <text x="620" y="762" text-anchor="middle" font-size="11" fill="#94A3B8">说明：只有经 install-skill.ps1 从 GitHub 仓库安装的技能可检测升级；迁移/手放技能无远程依据。匿名 API 每仓库消耗 1 次请求。</text>
+</svg>

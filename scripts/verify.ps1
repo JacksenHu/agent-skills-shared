@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 验证：检查所有 Agent 的联接与技能可见性
@@ -16,11 +16,14 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$ConfigPath = (Join-Path $PSScriptRoot '..\config\agents.json')
+    [string]$ConfigPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# 默认配置路径（$PSScriptRoot 在 param 默认值阶段不可用，故在主体解析）
+if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot '..\config\agents.json' }
 
 if (-not (Test-Path $ConfigPath)) {
     throw "找不到配置文件: $ConfigPath"

@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 从 GitHub / skills.sh 一键安装技能到共享库
@@ -14,7 +14,8 @@
      否则扫描子目录，把每个含 SKILL.md 的目录作为独立技能；
      若链接指定了具体技能名（skills.sh 的 /skill-name），只安装该技能；
   4) 复制到共享技能库（sharedRoot），同名冲突默认跳过并报告；
-  5) 为每个技能生成 _meta.json（含名称、简介与中文翻译简介），
+  5) 为每个技能生成 _meta.json（含名称、简介、中文翻译简介与版本基准
+     branch + commitSha，供 check-updates.ps1 检测技能版本升级），
      供「技能管理」列表显示中文简介；
   6) 输出安装结果与依赖提示。
 
@@ -28,13 +29,16 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
     [Parameter(Mandatory = $true)][string]$RepoUrl,
-    [string]$ConfigPath = (Join-Path $PSScriptRoot '..\config\agents.json'),
+    [string]$ConfigPath,
     [string]$SharedRoot,        # 留空则读配置；配置不存在则用默认 ~\skills\shared
     [switch]$Replace            # 同名冲突时替换共享库旧版本
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# 默认配置路径（$PSScriptRoot 在 param 默认值阶段不可用，故在主体解析）
+if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot '..\config\agents.json' }
 
 # TLS 1.2（Windows PowerShell 5.1 访问 GitHub 必需）
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -67,6 +71,23 @@ function ConvertTo-DescriptionZh {
         if ($zh) { return $zh.Trim() }
     } catch { }
     return $Description.Trim()
+}
+
+# 写 _meta.json：名称 / 简介 / 中文简介 / 来源 / 版本基准（branch + commitSha）/ 时间
+# commitSha 为安装时仓库默认分支最新提交，供 check-updates.ps1 检测升级用
+function Write-SkillMeta {
+    param([string]$Dest, [string]$SkillName, [string]$Desc)
+    $descZh = ConvertTo-DescriptionZh $Desc
+    $meta = [ordered]@{
+        name          = $SkillName
+        description   = $Desc
+        descriptionZh = $descZh
+        source        = "https://github.com/$owner/$repo"
+        branch        = $branch
+        commitSha     = $commitSha
+        installedAt   = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
+    }
+    $meta | ConvertTo-Json -Depth 3 | Out-File -FilePath (Join-Path $Dest '_meta.json') -Encoding UTF8
 }
 
 function Read-SkillFrontmatter {
@@ -131,10 +152,18 @@ New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
 try {
     # 通过 API 取默认分支（失败时回退 main / master 逐个尝试）
     $branch = $null
+    $commitSha = ''
     try {
         $api = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo" -Headers @{ 'User-Agent' = 'agent-skills-shared' } -TimeoutSec 20
         $branch = $api.default_branch
     } catch { $branch = $null }
+    # 记录版本基准：默认分支最新提交 SHA（供 check-updates.ps1 检测升级）
+    if ($branch) {
+        try {
+            $commit = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo/commits/$branch" -Headers @{ 'User-Agent' = 'agent-skills-shared' } -TimeoutSec 20 -UseBasicParsing
+            $commitSha = [string]$commit.sha
+        } catch { $commitSha = '' }
+    }
     $candidates = @(if ($branch) { $branch } else { 'main'; 'master' })
 
     $downloaded = $false
@@ -204,6 +233,7 @@ try {
                 if ($PSCmdlet.ShouldProcess($dest, "替换共享库中的 $skillName")) {
                     Remove-Item $dest -Recurse -Force
                     Copy-Item $d -Destination $dest -Recurse -Force
+                    Write-SkillMeta -Dest $dest -SkillName $skillName -Desc $desc
                     $replaced += $skillName
                     Write-Warn "[替换] $skillName 已替换为仓库版本"
                 }
@@ -218,17 +248,7 @@ try {
             $count = @(Get-ChildItem $dest -Recurse -File -Filter 'SKILL.md' -ErrorAction SilentlyContinue).Count
             $installed += $skillName
             Write-Ok "已安装: $skillName（$count 个 SKILL.md）"
-
-            # 生成 _meta.json：名称 / 原文简介 / 中文简介 / 来源 / 时间
-            $descZh = ConvertTo-DescriptionZh $desc
-            $meta = [ordered]@{
-                name         = $skillName
-                description  = $desc
-                descriptionZh = $descZh
-                source       = "https://github.com/$owner/$repo"
-                installedAt  = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
-            }
-            $meta | ConvertTo-Json -Depth 3 | Out-File -FilePath (Join-Path $dest '_meta.json') -Encoding UTF8
+            Write-SkillMeta -Dest $dest -SkillName $skillName -Desc $desc
         }
     }
 

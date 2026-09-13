@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 一键搭建：统一技能库 + 目录联接（Junction）
@@ -7,8 +7,7 @@
   读取 config\agents.json：
   1) 创建共享技能库目录（sharedRoot，不存在时）；
   2) 把每个 Agent 的技能根目录通过 NTFS Junction 指向共享库；
-  3) 已有技能自动迁移进共享库：同名且内容一致 → 自动去重；
-     同名但内容不同 → 保留两边并提示冲突；共享库无同名 → 正常迁移。
+  3) 已有技能自动迁移进共享库（同名冲突：保留现有版本并报告，绝不覆盖）。
 
   无需管理员权限（Junction 免提权）。脚本只处理配置文件中列出的路径，
   不会触碰任何系统级技能目录。
@@ -19,11 +18,14 @@
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
-    [string]$ConfigPath = (Join-Path $PSScriptRoot '..\config\agents.json')
+    [string]$ConfigPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# 默认配置路径（$PSScriptRoot 在 param 默认值阶段不可用，故在主体解析）
+if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot '..\config\agents.json' }
 
 # ---------- 工具：比较两个目录内容是否完全一致（相对路径 + 文件哈希） ----------
 function Test-DirSame {

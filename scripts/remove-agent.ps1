@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 移除单个 Agent：拆除其技能根目录的联接（回滚）
@@ -17,12 +17,15 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
     [Parameter(Mandatory = $true)][string]$AgentName,
-    [string]$ConfigPath = (Join-Path $PSScriptRoot '..\config\agents.json'),
+    [string]$ConfigPath,
     [switch]$Force
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# 默认配置路径（$PSScriptRoot 在 param 默认值阶段不可用，故在主体解析）
+if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot '..\config\agents.json' }
 
 if (-not (Test-Path $ConfigPath)) {
     throw "找不到配置文件: $ConfigPath"
