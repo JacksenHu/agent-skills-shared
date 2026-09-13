@@ -10,7 +10,7 @@
     [3] 技能管理 —— 分类清单 / GitHub、skills.sh 仓库安装 / 移除 / 分类浏览
     [4] 接入 / 移除 Agent
     [5] 扫描已装技能 —— 发现各 Agent 中未进共享库的技能
-    [6] 检查版本更新 —— 对比 GitHub 仓库最新提交，可选自动升级
+    [6] 检查更新 —— 技能版本更新 / 项目（工具）版本更新
     [7] 帮助与文档
     [0] 退出
 
@@ -39,6 +39,7 @@ $addAgentScript   = Join-Path $PSScriptRoot 'add-agent.ps1'
 $removeAgentScript= Join-Path $PSScriptRoot 'remove-agent.ps1'
 $installScript    = Join-Path $PSScriptRoot 'install-skill.ps1'
 $checkUpdatesScript = Join-Path $PSScriptRoot 'check-updates.ps1'
+$checkProjectScript = Join-Path $PSScriptRoot 'check-project-updates.ps1'
 
 # =====================================================================
 #  终端美化层
@@ -770,6 +771,64 @@ function Invoke-CheckUpdates {
 }
 
 # =====================================================================
+#  检查更新子菜单（技能版本 / 项目（工具）版本）
+# =====================================================================
+function Show-UpdateMenu {
+    while ($true) {
+        Write-C ''
+        Show-BoxTop '检查更新' primary
+        Show-BoxRowColor @(@{ T = '  [a] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '技能版本更新' 18); C = 'white'; B = $true }, @{ T = '对比各技能的 GitHub 来源仓库，可自动升级'; C = 'dim' })
+        Show-BoxRowColor @(@{ T = '  [b] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '项目（工具）更新' 18); C = 'white'; B = $true }, @{ T = '检测本项目是否有新版本推送，可一键升级'; C = 'dim' })
+        Show-BoxRowColor @(@{ T = '  [q] '; C = 'gold'; B = $true }, @{ T = (Pad-Width '返回主菜单' 18); C = 'white'; B = $true })
+        Show-BoxBottom primary
+        Write-C ("? 请选择  ") -C text -NoNewline
+        Write-C '> ' -C primary -NoNewline
+        $sub = (Read-Host).Trim().ToLower()
+        if ($sub -eq 'q' -or $sub -eq '') { break }
+        switch ($sub) {
+            'a' { Invoke-CheckUpdates }
+            'b' { Invoke-ProjectUpdate }
+            default { Write-Err '无效选项，请输入 a / b / q。' }
+        }
+    }
+}
+
+# =====================================================================
+#  检查项目（工具）自身更新
+# =====================================================================
+function Invoke-ProjectUpdate {
+    Show-BoxTop '检查项目（工具）更新' primary
+    Show-BoxRow '本项目仓库为私有，远程检测需要 GitHub Token（只读即可）。' dim
+    Show-BoxRow '已设置环境变量 GITHUB_TOKEN 则自动使用；否则可手动输入。' dim
+    Show-BoxBottom primary
+    Write-C ''
+    $token = ''
+    if ($env:GITHUB_TOKEN) {
+        $token = $env:GITHUB_TOKEN
+        Write-Ok '已从环境变量 GITHUB_TOKEN 读取 Token。'
+    } else {
+        Write-C '? 输入 GitHub Token（回车跳过，仅检测本地版本）  > ' -C text -NoNewline
+        $token = (Read-Host).Trim()
+    }
+    Write-C ''
+    if ($token) {
+        & $checkProjectScript -Token $token
+    } else {
+        & $checkProjectScript
+    }
+    Write-C ''
+    if (Read-YesNo '检测到更新的话，现在立即升级本项目？' $false) {
+        Write-C ''
+        Show-BoxTop '项目升级' ok
+        Show-BoxBottom ok
+        if ($token) { & $checkProjectScript -Token $token -Update }
+        else { & $checkProjectScript -Update }
+    }
+    Write-C ''
+    Write-Ok '升级完成后，新版本立即生效（无需重启 Agent）。'
+}
+
+# =====================================================================
 #  帮助
 # =====================================================================
 function Show-Help {
@@ -791,6 +850,7 @@ function Show-Help {
     Show-BoxRow '验证                .\scripts\verify.ps1' text
     Show-BoxRow '扫描 Agent 技能     .\scripts\scan-agents.ps1' text
     Show-BoxRow '检查技能版本更新    .\scripts\check-updates.ps1  （-Update 自动升级）' text
+    Show-BoxRow '检查项目（工具）更新 .\scripts\check-project-updates.ps1  （-Update 升级，私有仓库需 Token）' text
     Show-BoxRow '接入 Agent    .\scripts\add-agent.ps1 -AgentName 名 -RootPath 路径' text
     Show-BoxRow '移除 Agent    .\scripts\remove-agent.ps1 -AgentName 名 -RootPath 路径' text
     Show-BoxRow '安装技能（仓库链接）.\scripts\install-skill.ps1 -RepoUrl <仓库地址>' text
@@ -800,7 +860,8 @@ function Show-Help {
     Show-BoxRow '- 迁移/去重/冲突策略见 setup.ps1 输出与 docs/05' dim
     Show-BoxRow '- 仓库链接安装到共享库后，重启各 Agent 会话生效' dim
     Show-BoxRow '- 在 Agent 内手动安装的技能可用 [5] 扫描发现并迁移' dim
-    Show-BoxRow '- 只有仓库链接安装的技能可检测升级（[6]），安装会记录基准 commitSha' dim
+    Show-BoxRow '- 只有仓库链接安装的技能可检测升级（[6]a），安装会记录基准 commitSha' dim
+    Show-BoxRow '- 项目（工具）更新检测（[6]b）：私有仓库需 GITHUB_TOKEN，-Update 自动升级' dim
     Show-BoxBottom primary
     Write-C ''
 }
@@ -866,8 +927,8 @@ function Show-MainMenu {
         )
         Show-BoxRowColor @(
             @{ T = '  [6] '; C = 'accent'; B = $true },
-            @{ T = (Pad-Width '检查版本更新' 18); C = 'white'; B = $true },
-            @{ T = '对比 GitHub 仓库最新提交，可选自动升级'; C = 'dim' }
+            @{ T = (Pad-Width '检查更新' 18); C = 'white'; B = $true },
+            @{ T = '技能版本 · 项目（工具）版本'; C = 'dim' }
         )
         Show-BoxRowColor @(
             @{ T = '  [7] '; C = 'accent'; B = $true },
@@ -939,7 +1000,7 @@ function Show-MainMenu {
                 if (-not (Test-Path $ConfigPath)) { Write-Warn '还没有配置。请先 [1] 快速搭建。' }
                 else { & (Join-Path $PSScriptRoot 'scan-agents.ps1') -ConfigPath $ConfigPath }
             }
-            '6' { Invoke-CheckUpdates }
+            '6' { Show-UpdateMenu }
             '7' { Show-Help }
             '0' { Write-Ok '再见！'; return }
             default { Write-Err '无效选项，请输入 0-7。' }
