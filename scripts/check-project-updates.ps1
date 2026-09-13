@@ -88,7 +88,6 @@ foreach ($tk in $tryTokens) {
         } elseif ($code -eq 404) {
             # 仓库不存在，或远程缺少 VERSION 文件
             $remoteError = 'notfound'
-git commit --amend -m "test"
             break
         } else {
             $remoteError = 'net'
@@ -182,12 +181,12 @@ try {
     Write-Host ''
     Write-Host '比对远程文件与本地差异…' -ForegroundColor Cyan
     $newFiles = @(Get-ChildItem $srcRoot -Recurse -File -Force | Where-Object {
-        $_.FullName -notmatch '\\\\\\.git\\\\'
+        $_.FullName -notmatch '\\\.git\\'
     })
     $changed = @()
     $same = 0
     foreach ($f in $newFiles) {
-        $rel = $f.FullName.Substring($srcRoot.Length).TrimStart([char[]]@('\\\\\u0027, '/\u0027))
+        $rel = $f.FullName.Substring($srcRoot.Length).TrimStart([char[]]@('\', '/'))
         if ($rel -ieq 'config/agents.json') { continue }   # 用户配置绝不覆盖
         $dest = Join-Path $ProjectRoot $rel
         if (Test-Path $dest) {
