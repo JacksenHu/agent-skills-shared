@@ -85,8 +85,8 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 勾选要接入的 Agent（脚本会自动探测本机已装的，输入 `d` 一键全选）→ 确认后自动完成
 **迁移已有技能 → 建立联接 → 验证**。最后重启各 Agent 会话，技能即全部生效。
 
-> 💡 之后每次使用都运行 `.\scripts\setup-wizard.ps1` 这一个入口即可：
-> 加装技能选 [3]b、查看分类选 [3]a、扫描各 Agent 已装技能选 [5]。
+> 💡 之后每次使用都运行 `.\.\scripts\setup-wizard.ps1` 这一个入口即可：
+> 加装技能选 [3]b、查看分类选 [3]a、扫描各 Agent 已装技能选 [5]、检测升级选 [6]。
 > 更新项目：git clone 方式 `git pull`；ZIP 方式重新下载解压（**别覆盖**你生成的 `config\agents.json`）。
 
 ## 使用项目（日常操作）
@@ -98,7 +98,7 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 ```
 
 打开**首页主菜单**：快速搭建 / 验证 / 技能管理（**按分类分组列出**、从 GitHub 仓库链接安装、移除、按分类浏览）/
-接入移除 Agent / 扫描各 Agent 已安装技能 / 帮助。搭建时**预设 12 个常见 Agent 技能路径**（Doubao、Claude Code、
+接入移除 Agent / 扫描各 Agent 已安装技能 / **检查技能版本更新** / 帮助。搭建时**预设 12 个常见 Agent 技能路径**（Doubao、Claude Code、
 Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy 等，均来自官方文档或实测），
 自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认，
 自动完成：生成配置 → 迁移已有技能（**内容一致自动去重、内容不同提示冲突**）
@@ -115,7 +115,22 @@ Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、W
 .\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo/skill-name"
 ```
 
-安装后自动为每个技能生成中文简介元数据，技能管理列表会显示。
+安装后自动为每个技能生成中文简介元数据（技能管理列表会显示），并记录**版本基准**（来源仓库
+`branch` + 默认分支最新提交 `commitSha`），供检测升级使用。
+
+**检测技能版本更新（对比 GitHub 仓库最新提交）：**
+
+```powershell
+# 只检测，列出「有更新 / 已最新 / 无基准 / 不可查」四类
+.\scripts\check-updates.ps1
+# 检测并自动升级所有有更新的仓库（逐个 install-skill.ps1 -Replace）
+.\scripts\check-updates.ps1 -Update
+# 或设置 GitHub Token（匿名 API 限速 60 次/小时）提高配额
+.\scripts\check-updates.ps1 -Token ghp_xxx
+```
+
+也可在向导主菜单选 [6]。检测到更新后重启各 Agent 会话生效。
+只有**从仓库链接安装**的技能可检测；迁移/手放的技能无远程依据，仅显示本地版本号。
 
 **随时检测各 Agent 已安装技能（发现未进共享库的技能）：**
 
@@ -157,7 +172,7 @@ agent-skills-shared/
 │   ├── 01-architecture.md         # 方案详解：机制、原理、对比
 │   ├── 02-agent-path-reference.md # 各 Agent 技能目录速查表（带官方来源）
 │   ├── 03-setup-guide.md          # 完整搭建指南（迁移/验证/生效）
-│   ├── 04-day-to-day.md           # 日常使用：新增/更新/删除技能、增删 Agent
+│   ├── 04-day-to-day.md           # 日常使用：新增/更新/删除技能、检测升级、增删 Agent
 │   ├── 05-safety-and-rollback.md  # 风险清单与回滚流程
 │   └── 06-faq.md                  # 常见问题
 ├── diagrams/                      # 图解（SVG，GitHub 可直接渲染）
@@ -166,13 +181,15 @@ agent-skills-shared/
 │   ├── setup-flow.svg             # 搭建流程
 │   ├── update-flow.svg            # 日常更新流程
 │   ├── rollback-flow.svg          # 回滚流程
-│   └── skills-management.svg      # 技能管理（分类/仓库安装/移除/浏览/扫描）
+│   ├── skills-management.svg      # 技能管理（分类/仓库安装/移除/浏览/扫描）
+│   └── check-updates-flow.svg     # 技能版本更新检测流程
 ├── config/
 │   └── agents.example.json        # Agent 路径配置模板（含 12 项预设）
 └── scripts/
-    ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/扫描/仓库安装）
+    ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/扫描/仓库安装/检查更新）
     ├── setup.ps1                   # 一键搭建：迁移（智能去重）+ 建联接 + 验证
-    ├── install-skill.ps1           # 从 GitHub / skills.sh 仓库链接一键安装技能（自动生成中文简介）
+    ├── install-skill.ps1           # 从 GitHub / skills.sh 仓库链接一键安装技能（自动生成中文简介+版本基准）
+    ├── check-updates.ps1           # 检测技能版本更新（对比 GitHub 仓库最新提交，-Update 自动升级）
     ├── scan-agents.ps1             # 扫描各 Agent 已安装技能（发现未进共享库的技能）
     ├── add-agent.ps1               # 为单个 Agent 建立联接（含去重/冲突处理）
     ├── remove-agent.ps1            # 移除单个 Agent 的联接（回滚）
@@ -197,6 +214,7 @@ agent-skills-shared/
 | [`diagrams/setup-flow.svg`](diagrams/setup-flow.svg) | 搭建流程 |
 | [`diagrams/update-flow.svg`](diagrams/update-flow.svg) | 日常使用流程 |
 | [`diagrams/skills-management.svg`](diagrams/skills-management.svg) | 技能管理（分类/仓库安装/移除/浏览/扫描） |
+| [`diagrams/check-updates-flow.svg`](diagrams/check-updates-flow.svg) | 技能版本更新检测流程 |
 | [`diagrams/rollback-flow.svg`](diagrams/rollback-flow.svg) | 回滚流程 |
 
 ## 环境要求
