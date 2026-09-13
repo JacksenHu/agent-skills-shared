@@ -7,6 +7,32 @@
 - **无需管理员权限**；
 - 阅读 [`01-architecture.md`](01-architecture.md) 理解机制，先看 [`05-safety-and-rollback.md`](05-safety-and-rollback.md) 了解风险。
 
+## 0.5 获取项目（还没下载的话）
+
+```text
+方式一（无需 git）：
+  仓库首页 → Code → Download ZIP → 解压到任意目录（如 C:\agent-skills-shared）
+  注意：ZIP 解压后目录名通常带 -main 后缀，进入该目录操作
+
+方式二（推荐，更新方便）：
+  git clone https://github.com/JacksenHu/agent-skills-shared.git
+```
+
+首次运行脚本前，若 PowerShell 提示"禁止运行脚本"，先放行（只影响当前用户）：
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+然后进入项目目录启动向导（全程选择即可，无需手写 JSON）：
+
+```powershell
+cd C:\agent-skills-shared        # 换成你的实际目录
+.\scripts\setup-wizard.ps1
+```
+
+> 更新项目：git 方式 `git pull`；ZIP 方式重新下载解压后，**不要覆盖**你生成的 `config\agents.json`。
+
 ## 1. 准备配置文件
 
 **方式 A（推荐）· 交互式引导**，无需手写 JSON：

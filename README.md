@@ -36,7 +36,60 @@
 | 符号链接 `mklink /D` | ✅ | ✅（或开开发者模式） | ✅ | ✅ | 权限门槛高 |
 | **目录联接 `mklink /J`（本方案）** | ✅ | ❌ | ✅ | ✅ | 删除语义需注意（见下文） |
 
-## 快速开始
+## 快速上手（从 GitHub 到运行，约 3 分钟）
+
+**第 1 步 · 获取项目（二选一）**
+
+```text
+方式一（无需安装 git）：
+  仓库首页 → 绿色 Code 按钮 → Download ZIP → 解压到任意目录（如 C:\agent-skills-shared）
+  ⚠ 解压后进入解压出来的文件夹（ZIP 解压后目录名通常是 agent-skills-shared-main）
+
+方式二（推荐，以后更新方便）：
+  git clone https://github.com/JacksenHu/agent-skills-shared.git
+```
+
+**第 2 步 · 打开 PowerShell 并放行脚本（仅首次需要）**
+
+按 `Win + X` → 选择 **Windows PowerShell**（或 Windows 终端），执行：
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+> 只影响当前用户，让系统允许运行本地下载的 `.ps1` 脚本。输入 `Y` 确认即可。
+> 如果之前已允许过，可跳过此步。
+
+**第 3 步 · 进入项目目录并启动交互式控制台**
+
+```powershell
+cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
+.\scripts\setup-wizard.ps1
+```
+
+看到下面的菜单就说明项目已跑起来：
+
+```text
+============================================
+  统一技能库 · 管理控制台
+  一套技能，只装一次，所有 Agent 共用
+============================================
+  [1] 快速搭建（配置 + 迁移 + 建立联接）
+  [2] 验证所有 Agent 联接
+  ...
+```
+
+**第 4 步 · 按菜单搭建**
+
+输入 `1` 进入快速搭建：确认共享库位置（默认 `C:\Users\<你>\skills\shared`）→
+勾选要接入的 Agent（脚本会自动探测本机已装的，输入 `d` 一键全选）→ 确认后自动完成
+**迁移已有技能 → 建立联接 → 验证**。最后重启各 Agent 会话，技能即全部生效。
+
+> 💡 之后每次使用都运行 `.\scripts\setup-wizard.ps1` 这一个入口即可：
+> 加装技能选 [3]b、查看分类选 [3]a、扫描各 Agent 已装技能选 [5]。
+> 更新项目：git clone 方式 `git pull`；ZIP 方式重新下载解压（**别覆盖**你生成的 `config\agents.json`）。
+
+## 使用项目（日常操作）
 
 **方式 A（推荐）· 交互式控制台，全程只需选择：**
 
@@ -45,8 +98,8 @@
 ```
 
 打开**首页主菜单**：快速搭建 / 验证 / 技能管理（**按分类分组列出**、从 GitHub 仓库链接安装、移除、按分类浏览）/
-接入移除 Agent / 扫描各 Agent 已安装技能 / 帮助。搭建时**预设 11 个常见 Agent 技能路径**
-（Doubao、Claude Code、Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，均来自官方文档），
+接入移除 Agent / 扫描各 Agent 已安装技能 / 帮助。搭建时**预设 11 个常见 Agent 技能路径**（Doubao、Claude Code、
+Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，均来自官方文档），
 自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认，
 自动完成：生成配置 → 迁移已有技能（**内容一致自动去重、内容不同提示冲突**）
 → 建立联接 → 验证，无需手写任何 JSON。

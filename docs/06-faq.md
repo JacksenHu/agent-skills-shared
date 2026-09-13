@@ -8,6 +8,16 @@
 
 不需要。`mklink /J` 普通权限即可创建。这也是本方案选它的核心原因之一。
 
+## Q2.1：首次运行脚本报"禁止运行脚本"怎么办？
+
+Windows PowerShell 默认执行策略是 `Restricted`，会拒绝运行任何 `.ps1` 脚本。放行（只影响当前用户）：
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+输入 `Y` 确认后重试即可。`RemoteSigned` 表示只允许运行**本地创建**的脚本和**带有效数字签名**的远程脚本，是微软官方推荐的本地脚本放行方式，不会降低系统整体安全级别。脚本本身无需管理员权限。
+
 ## Q3：我改了共享库，为什么 Agent 没反应？
 
 大多数 Agent 在**会话启动时**扫描技能目录。改动后请**重启会话**（Doubao 新开对话、Claude Code 重启会话、Cursor 重载窗口）。
