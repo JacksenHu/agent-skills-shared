@@ -8,23 +8,23 @@
     [最新]   本地与远程版本号一致
     [有更新] 远程版本号比本地新（或内容不同）
     [无基准] 本地没有 VERSION 文件（首次使用，可 -Update 同步一次）
-    [不可查] 远程读取失败（仓库为私有/不存在/网络异常）
+    [不可查] 远程读取失败（仓库不存在/网络异常/匿名限速）
 
-  注意：本项目仓库为私有，远程检测需要 GitHub Token（只读权限即可）：
+  仓库为公开仓库，匿名即可检测，无需登录。
+  可选：设置 GitHub Token 提高 API 配额（匿名限速 60 次/小时）：
     - 设置环境变量 GITHUB_TOKEN，或运行本脚本时 -Token ghp_xxx
-    - 创建 Token：GitHub → Settings → Developer settings → Personal access tokens
-      → Generate new token (classic)，勾选 repo 权限
+    - Token 无效时脚本会自动降级为匿名访问，不影响检测
 
   -Update 升级流程：
     1) 优先用 git clone（已安装 git 时）拉取最新仓库到临时目录；
-    2) 否则尝试下载 zip（私有仓库需 Token 或浏览器登录）；
+    2) 否则尝试下载 zip；
     3) 对比文件差异，逐个覆盖项目文件（自动排除 config\agents.json 用户配置）；
     4) 本地 VERSION 随更新文件同步到远程版本。
 
 .EXAMPLE
-  .\scripts\check-project-updates.ps1                  # 仅检测
+  .\scripts\check-project-updates.ps1                  # 仅检测（匿名）
   .\scripts\check-project-updates.ps1 -Update          # 检测并升级
-  .\scripts\check-project-updates.ps1 -Token ghp_xxx   # 指定 Token 检测
+  .\scripts\check-project-updates.ps1 -Token ghp_xxx   # 用 Token 提高配额
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
@@ -61,28 +61,38 @@ if (Test-Path $versionFile) {
 Write-Info "项目目录: $ProjectRoot"
 Write-Host ("本地版本: {0}" -f $(if ($localVersion) { $localVersion } else { '（无 VERSION，未记录基准）' })) -ForegroundColor DarkGray
 
-# ---------- 读取远程 VERSION ----------
+# ---------- 读取远程 VERSION（公开仓库匿名可读；Token 可选提高配额，失败自动降级匿名） ----------
 $remoteVersion = ''
 $remoteError = ''
-$headers = @{ 'User-Agent' = 'agent-skills-shared' }
-if ($Token) { $headers['Authorization'] = "token $Token" }
-try {
-    $resp = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo/contents/VERSION?ref=$branch" -Headers $headers -TimeoutSec 20 -UseBasicParsing
-    $pContent = $resp.PSObject.Properties['content']
-    if ($pContent -and $pContent.Value) {
-        $remoteVersion = ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String([string]$pContent.Value))).Trim()
-    }
-} catch {
-    $code = 0
-    try { $code = [int]$_.Exception.Response.StatusCode } catch { $code = 0 }
-    if ($code -eq 403 -or $code -eq 401) {
-        $remoteError = 'auth'
-        $remoteVersion = ''
-    } elseif ($code -eq 404) {
-        # GitHub 对私有仓库的匿名访问故意返回 404（隐藏仓库存在性）
-        $remoteError = 'notfound'
-    } else {
-        $remoteError = 'net'
+$tryTokens = @()
+if ($Token) { $tryTokens += $Token }
+$tryTokens += ''          # 兜底匿名访问
+foreach ($tk in $tryTokens) {
+    $h = @{ 'User-Agent' = 'agent-skills-shared' }
+    if ($tk) { $h['Authorization'] = "token $tk" }
+    try {
+        $resp = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo/contents/VERSION?ref=$branch" -Headers $h -TimeoutSec 20 -UseBasicParsing
+        $pContent = $resp.PSObject.Properties['content']
+        if ($pContent -and $pContent.Value) {
+            $remoteVersion = ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String([string]$pContent.Value))).Trim()
+            $remoteError = ''
+        }
+        break
+    } catch {
+        $code = 0
+        try { $code = [int]$_.Exception.Response.StatusCode } catch { $code = 0 }
+        if ($code -eq 401 -or $code -eq 403) {
+            if ($tk) { Write-Warn 'Token 无效或权限不足，自动改用匿名访问重试。'; continue }
+            $remoteError = 'auth'   # 匿名也被拒 → 大概率触发限速
+            break
+        } elseif ($code -eq 404) {
+            # 仓库不存在，或远程缺少 VERSION 文件
+            $remoteError = 'notfound'
+            break
+        } else {
+            $remoteError = 'net'
+            break
+        }
     }
 }
 
@@ -90,13 +100,11 @@ try {
 Write-Host ''
 if ($remoteError -or -not $remoteVersion) {
     if ($remoteError -eq 'auth') {
-        Write-Warn '远程仓库为私有，读取需要 GitHub Token。'
-        Write-Host '  设置环境变量 GITHUB_TOKEN，或使用 -Token <token> 后重试。' -ForegroundColor DarkGray
-        Write-Host '  （Token 只需只读 repo 权限；创建：Settings → Developer settings → Personal access tokens）' -ForegroundColor DarkGray
+        Write-Warn 'GitHub API 拒绝了匿名访问（大概率触发匿名限速 60 次/小时）。'
+        Write-Host '  设置 GITHUB_TOKEN 环境变量，或使用 -Token <token> 提高配额后重试。' -ForegroundColor DarkGray
     } elseif ($remoteError -eq 'notfound') {
-        Write-Err '远程不可读（404）：仓库为私有、不存在，或远程缺少 VERSION 文件。'
-        Write-Host '  本项目为私有仓库，匿名访问会得到 404；请设置 GITHUB_TOKEN 或 -Token 后重试。' -ForegroundColor DarkGray
-        Write-Host '  若已带 Token 仍 404，请确认仓库名/分支正确。' -ForegroundColor DarkGray
+        Write-Err '远程不可读（404）：仓库不存在，或远程缺少 VERSION 文件。'
+        Write-Host '  请确认仓库名/分支正确。' -ForegroundColor DarkGray
     } else {
         Write-Warn '无法连接 GitHub（网络异常或限速），稍后重试。'
     }
@@ -129,7 +137,7 @@ $tmpDir = Join-Path $env:TEMP ("project-update-" + [guid]::NewGuid().ToString('N
 $srcRoot = $null
 New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
 try {
-    # 方式 1：git clone（最可靠，含私有仓库 Token 认证）
+    # 方式 1：git clone（最可靠；Token 可选，用于提高配额）
     $git = Get-Command git -ErrorAction SilentlyContinue
     if ($git) {
         $authUrl = "https://github.com/$owner/$repo.git"
@@ -139,7 +147,7 @@ try {
         & git clone --depth 1 --branch $branch $authUrl $cloneDir 2>&1 | ForEach-Object { Write-Host "  $_" }
         if (Test-Path (Join-Path $cloneDir 'README.md')) { $srcRoot = $cloneDir }
     }
-    # 方式 2：下载 zip（codeload，私有仓库需 Token）
+    # 方式 2：下载 zip（codeload，公开仓库无需登录）
     if (-not $srcRoot) {
         $zipPath = Join-Path $tmpDir 'repo.zip'
         $zipUrl = "https://codeload.github.com/$owner/$repo/zip/refs/heads/$branch"
@@ -162,7 +170,7 @@ try {
 
     if (-not $srcRoot) {
         Write-Err '未能自动获取更新包。请手动升级：'
-        Write-Host '  1) 浏览器打开仓库 → Code → Download ZIP（登录 GitHub）' -ForegroundColor DarkGray
+        Write-Host '  1) 浏览器打开仓库 → Code → Download ZIP' -ForegroundColor DarkGray
         Write-Host '  2) 解压后，将 scripts / docs / diagrams / README.md / VERSION 等覆盖到本项目目录' -ForegroundColor DarkGray
         Write-Host "  3) 不要覆盖 config\agents.json（你的配置）" -ForegroundColor DarkGray
         Write-Host "  项目目录: $ProjectRoot" -ForegroundColor DarkGray
