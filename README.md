@@ -85,7 +85,7 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 勾选要接入的 Agent（脚本会自动探测本机已装的，输入 `d` 一键全选）→ 确认后自动完成
 **迁移已有技能 → 建立联接 → 验证**。最后重启各 Agent 会话，技能即全部生效。
 
-> 💡 之后每次使用都运行 `.\.\scripts\setup-wizard.ps1` 这一个入口即可：
+> 💡 之后每次使用都运行 `.\scripts\setup-wizard.ps1` 这一个入口即可：
 > 加装技能选 [3]b、查看分类选 [3]a、扫描各 Agent 已装技能选 [5]、检测升级选 [6]。
 > 更新项目：git clone 方式 `git pull`；ZIP 方式重新下载解压（**别覆盖**你生成的 `config\agents.json`）。
 
