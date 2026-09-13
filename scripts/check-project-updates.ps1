@@ -198,7 +198,7 @@ try {
         if ($bytes -contains 0) {
             return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-', '')
         }
-        $text = [Text.Encoding]::UTF8.GetString($bytes).Replace("`r`n", "`n")
+        $text = [Text.Encoding]::UTF8.GetString($bytes).Replace("`r`n", "`n").TrimEnd([char[]]@("`n", "`r"))
         return ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text)))).Replace('-', '')
     }
     Write-Host ''
