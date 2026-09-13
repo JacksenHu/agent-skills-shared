@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   方案一 · 交互式控制台：首页菜单选择，覆盖搭建、验证、技能管理与仓库安装
@@ -7,10 +7,11 @@
   全程交互，无需手写 JSON。主菜单：
     [1] 快速搭建 —— 配置 Agent 并建立共享联接（自动迁移已有技能、智能去重）
     [2] 验证所有 Agent 联接
-    [3] 技能管理（按分类分组列出含中文简介 / 从 GitHub、skills.sh 安装 / 移除 / 按分类浏览）
+    [3] 技能管理（列出含中文简介 / 从 GitHub、skills.sh 安装 / 移除）
     [4] 接入 / 移除单个 Agent
     [5] 扫描各 Agent 已安装技能（发现未进共享库的技能）
-    [6] 帮助与文档
+    [6] 检查技能版本更新（对比 GitHub 仓库最新提交，可选自动升级）
+    [7] 帮助与文档
     [0] 退出
 
   快速搭建内置 12 个常见 Agent 技能路径预设（Doubao、Claude Code、Codex、
@@ -22,17 +23,21 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$ConfigPath = (Join-Path $PSScriptRoot '..\config\agents.json')
+    [string]$ConfigPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# 默认配置路径（$PSScriptRoot 在 param 默认值阶段不可用，故在主体解析）
+if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot '..\config\agents.json' }
 
 $setupScript      = Join-Path $PSScriptRoot 'setup.ps1'
 $verifyScript     = Join-Path $PSScriptRoot 'verify.ps1'
 $addAgentScript   = Join-Path $PSScriptRoot 'add-agent.ps1'
 $removeAgentScript= Join-Path $PSScriptRoot 'remove-agent.ps1'
 $installScript    = Join-Path $PSScriptRoot 'install-skill.ps1'
+$checkUpdatesScript = Join-Path $PSScriptRoot 'check-updates.ps1'
 
 # ---------- 输出辅助 ----------
 function Write-Info { param([string]$Msg) Write-Host $Msg -ForegroundColor Cyan }
@@ -429,6 +434,23 @@ function Invoke-SetupFlow {
     Write-Ok '搭建完成！请重启各 Agent 会话（新开会话）使技能生效。'
 }
 
+# ---------- 检查技能版本更新 ----------
+function Invoke-CheckUpdates {
+    $sharedRoot = Get-SharedRoot
+    if (-not $sharedRoot -or -not (Test-Path $sharedRoot)) {
+        Write-Warn '共享库不存在。请先 [1] 快速搭建，或用 [3]b 安装技能。'
+        return
+    }
+    & $checkUpdatesScript -ConfigPath $ConfigPath
+    Write-Host ''
+    if (Read-YesNo '对检测到的「有更新」仓库立即自动升级？' $false) {
+        Write-Host ''
+        & $checkUpdatesScript -ConfigPath $ConfigPath -Update
+    }
+    Write-Host ''
+    Write-Ok '重启各 Agent 会话使升级后的技能生效。'
+}
+
 # ---------- 帮助 ----------
 function Show-Help {
     Write-Info '帮助与文档'
@@ -448,6 +470,7 @@ function Show-Help {
     快速搭建（非交互）  .\scripts\setup.ps1
     验证                .\scripts\verify.ps1
     扫描 Agent 技能     .\scripts\scan-agents.ps1
+    检查技能版本更新    .\scripts\check-updates.ps1            （-Update 自动升级）
     接入 Agent          .\scripts\add-agent.ps1 -AgentName 名称 -RootPath 路径
     移除 Agent          .\scripts\remove-agent.ps1 -AgentName 名称 -RootPath 路径
     安装技能（仓库链接）.\scripts\install-skill.ps1 -RepoUrl https://github.com/owner/repo
@@ -457,6 +480,7 @@ function Show-Help {
     - 迁移/去重/冲突策略见 setup.ps1 输出与 docs/05
     - 仓库链接安装到共享库后，重启各 Agent 会话生效
     - 在 Agent 内手动安装的技能会落在该 Agent 目录，可用 [5] 扫描发现并迁移
+    - 只有从仓库链接安装的技能可检测升级（[6]）；安装会记录版本基准 commitSha
 '@
     Write-Host ''
 }
@@ -474,10 +498,11 @@ function Show-MainMenu {
         Write-Host '  [3] 技能管理'
         Write-Host '  [4] 接入 / 移除 Agent'
         Write-Host '  [5] 扫描各 Agent 已安装技能（发现未进共享库的技能）'
-        Write-Host '  [6] 帮助与文档'
+        Write-Host '  [6] 检查技能版本更新（GitHub 仓库来源，可选自动升级）'
+        Write-Host '  [7] 帮助与文档'
         Write-Host '  [0] 退出'
         Write-Host ''
-        $choice = (Read-Host '  请选择 [0-6]').Trim()
+        $choice = (Read-Host '  请选择 [0-7]').Trim()
 
         switch ($choice) {
             '1' { Invoke-SetupFlow }
@@ -525,9 +550,10 @@ function Show-MainMenu {
                 if (-not (Test-Path $ConfigPath)) { Write-Warn '还没有配置。请先 [1] 快速搭建。' }
                 else { & (Join-Path $PSScriptRoot 'scan-agents.ps1') -ConfigPath $ConfigPath }
             }
-            '6' { Show-Help }
+            '6' { Invoke-CheckUpdates }
+            '7' { Show-Help }
             '0' { Write-Ok '再见！'; return }
-            default { Write-Warn '无效选项，请输入 0-6。' }
+            default { Write-Warn '无效选项，请输入 0-7。' }
         }
     }
 }
