@@ -104,16 +104,24 @@ notepad config\agents.json
 
 ![搭建流程](setup-flow.svg)
 
-## 6.1 从 GitHub 仓库一键安装技能
+## 6.1 从 GitHub / skills.sh 仓库一键安装技能
 
 搭建完成后，遇到想装的技能仓库，直接一条命令装进共享库（所有 Agent 生效）：
 
 ```powershell
+# GitHub 仓库
 .\scripts\install-skill.ps1 -RepoUrl "https://github.com/owner/skill-repo"
+
+# skills.sh 技能市场（Vercel，底层仍是 GitHub 仓库）
+.\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo"
+
+# 指定仓库里的某个技能
+.\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo/skill-name"
 ```
 
-- 自动下载（zip，无需 git），自动识别技能结构：仓库根有 `SKILL.md` → 单技能；否则每个含 `SKILL.md` 的子目录都是一个技能；
+- 自动下载（zip，无需 git），自动识别技能结构：仓库根有 `SKILL.md` → 单技能；否则每个含 `SKILL.md` 的子目录都是一个技能；链接指定技能名时只装该技能；
 - 同名冲突默认**跳过**并报告，`-Replace` 强制替换旧版本；
+- 安装后自动生成 `_meta.json`（中文简介），技能管理列表显示；
 - 检测到 `package.json` / `requirements.txt` 等依赖清单会给出提示。
 - 也可在交互控制台 `setup-wizard.ps1` → [3] 技能管理 → [b] 输入链接安装。
 

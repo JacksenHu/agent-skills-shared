@@ -103,6 +103,24 @@ PowerShell 试运行模式：只打印"将要做什么"，不真正执行。搭�
 自动下载（zip，无需 git）、识别技能结构（根目录或子目录含 `SKILL.md`）、安装进共享库；
 同名冲突默认跳过，`-Replace` 强制替换。也可以在交互控制台 `setup-wizard.ps1` → [3] 技能管理 → [b] 里输入链接安装。
 
+## Q16.1：能安装 skills.sh 上的技能吗？
+
+可以。skills.sh 是 Vercel 的技能市场，底层仍是 GitHub 仓库，直接贴它的链接即可：
+
+```powershell
+# 整包安装
+.\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo"
+
+# 只装其中的某个技能
+.\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo/skill-name"
+```
+
+## Q16.2：技能管理列表里能看到技能的中文简介吗？
+
+可以。`setup-wizard.ps1` → [3] 技能管理 → [a] 列出，每行显示「技能名（SKILL.md 数）＋ 简介」。
+通过 `install-skill.ps1` 安装的技能会自动生成 `_meta.json`（含自动翻译的中文简介）；
+手动复制的技能则直接读取 SKILL.md 中的 description 显示。
+
 ## Q17：仓库里的技能安装后怎么更新？
 
 重新运行安装命令即可，同名会被跳过；要覆盖旧版本加 `-Replace`：
@@ -115,4 +133,19 @@ PowerShell 试运行模式：只打印"将要做什么"，不真正执行。搭�
 
 ## Q18：安装的技能需要 npm install / pip install 之类依赖怎么办？
 
-`install-skill.ps1` 会检测仓库根目录的依赖清单（`package.json` / `requirements.txt` / `pyproject.toml` 等）并提示。依赖是技能自身的运行环境问题，与共享无关：在技能目录（共享库内）按需安装一次，各 Agent 通过联接即共享该环境（运行环境类依赖建议放到共享库外的全局路径，避免各平台隔离差异）。
+`install-skill.ps1` 会检测仓库根目录的依赖清单（`package.json` / `requirements.txt` / `pyproject.toml` / `Gemfile`）并提示。依赖是技能自身的运行环境问题，与共享无关：在技能目录（共享库内）按需安装一次，各 Agent 通过联接即共享该环境（运行环境类依赖建议放到共享库外的全局路径，避免各平台隔离差异）。
+
+## Q19：我在 Agent 里手动安装的技能，会进共享库吗？怎么检测？
+
+**不会自动进**。在 Agent 内手动安装（如 Claude Code `/install`、Codex `add`）会装到该 Agent 自己的技能目录，与共享库是两个独立位置。
+
+随时检测：
+
+```powershell
+.\scripts\scan-agents.ps1
+# 或向导主菜单 [5] 扫描各 Agent 已安装技能
+```
+
+脚本会标注每个 Agent 目录里各技能的状态：已接入共享库 / 已共享（内容一致）/ 冲突（同名不同内容）/ 独有（共享库没有）。发现"独有"技能后，按输出提示迁移进共享库即可（详见 `docs/04` 第 7 节）。
+
+> 小技巧：Agent 目录一旦接入共享库（Junction），之后在该 Agent 里手动安装的技能会**直接落在共享库**，天然共享，无需再迁移。

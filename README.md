@@ -45,8 +45,8 @@
 ```
 
 打开**首页主菜单**：快速搭建 / 验证 / 技能管理（列出、从 GitHub 仓库链接安装、移除）/
-接入移除 Agent / 帮助。搭建时**预设 11 个常见 Agent 技能路径**（Doubao、Claude Code、
-Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，均来自官方文档），
+接入移除 Agent / 扫描各 Agent 已安装技能 / 帮助。搭建时**预设 11 个常见 Agent 技能路径**
+（Doubao、Claude Code、Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等，均来自官方文档），
 自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认，
 自动完成：生成配置 → 迁移已有技能（**内容一致自动去重、内容不同提示冲突**）
 → 建立联接 → 验证，无需手写任何 JSON。
@@ -54,8 +54,24 @@ Codex、Cursor、Windsurf、OpenClaw、Trae、Trae CN、GitHub Copilot、Zed 等
 **从仓库链接一键装技能（含在其他终端/脚本中）：**
 
 ```powershell
+# GitHub 仓库
 .\scripts\install-skill.ps1 -RepoUrl "https://github.com/owner/skill-repo"
+# skills.sh 技能市场（Vercel，底层仍是 GitHub 仓库）
+.\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo"
+# 指定仓库里的某个技能
+.\scripts\install-skill.ps1 -RepoUrl "https://skills.sh/s/owner/repo/skill-name"
 ```
+
+安装后自动为每个技能生成中文简介元数据，技能管理列表会显示。
+
+**随时检测各 Agent 已安装技能（发现未进共享库的技能）：**
+
+```powershell
+.\scripts\scan-agents.ps1
+```
+
+或在向导主菜单选 [5]。用户在各 Agent 里手动安装的技能会落在该 Agent 自己的目录，
+扫描会标注「已共享 / 冲突 / 独有」并给出迁移建议。
 
 **方式 B · 手动配置：**
 
@@ -100,9 +116,10 @@ agent-skills-shared/
 ├── config/
 │   └── agents.example.json        # Agent 路径配置模板（含 11 项预设）
 └── scripts/
-    ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/仓库安装）
+    ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/扫描/仓库安装）
     ├── setup.ps1                   # 一键搭建：迁移（智能去重）+ 建联接 + 验证
-    ├── install-skill.ps1           # 从 GitHub 仓库链接一键安装技能到共享库
+    ├── install-skill.ps1           # 从 GitHub / skills.sh 仓库链接一键安装技能（自动生成中文简介）
+    ├── scan-agents.ps1             # 扫描各 Agent 已安装技能（发现未进共享库的技能）
     ├── add-agent.ps1               # 为单个 Agent 建立联接（含去重/冲突处理）
     ├── remove-agent.ps1            # 移除单个 Agent 的联接（回滚）
     └── verify.ps1                  # 验证所有联接与技能可见性
