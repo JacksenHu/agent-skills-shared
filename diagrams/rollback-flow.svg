@@ -17,6 +17,7 @@
     <text x="550" y="116" text-anchor="middle" font-weight="700">检测到异常：verify.ps1 报 [FAIL] / 技能被误删 / 某个 Agent 技能异常</text>
   </g>
 
+  <!-- 问题分类 -->
   <g>
     <polygon points="550,162 780,194 550,226 320,194" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
     <text x="550" y="198" text-anchor="middle" font-size="13" fill="#92400E">问题类型？</text>
@@ -32,6 +33,7 @@
   <text x="939" y="204" text-anchor="middle" font-size="11" fill="#475569">技能被误删 / 误改 /</text>
   <text x="939" y="222" text-anchor="middle" font-size="11" fill="#475569">内容损坏</text>
 
+  <!-- 修复 -->
   <g font-size="13" fill="#1E293B">
     <rect x="290" y="270" width="520" height="56" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
     <text x="550" y="294" text-anchor="middle">修复动作（按类型）</text>
@@ -43,6 +45,7 @@
     <text x="550" y="378" text-anchor="middle" font-weight="700">重启 Agent 会话 → verify.ps1 复核 → 恢复正常 ✅</text>
   </g>
 
+  <!-- 是否彻底回退 -->
   <g>
     <polygon points="550,428 780,460 550,492 320,460" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
     <text x="550" y="456" text-anchor="middle" font-size="13" fill="#92400E">已无法恢复 / 想彻底回退？</text>
@@ -52,6 +55,7 @@
   <text x="939" y="458" text-anchor="middle" font-size="11" fill="#065F46">否 → 已完成 ✅</text>
   <text x="939" y="474" text-anchor="middle" font-size="11" fill="#065F46">无需其他操作</text>
 
+  <!-- 回退步骤 -->
   <g font-size="13" fill="#1E293B">
     <rect x="290" y="530" width="520" height="48" rx="10" fill="#FFFFFF" stroke="#CBD5E1"/>
     <text x="550" y="560" text-anchor="middle">逐个拆除联接：remove-agent.ps1（每个 Agent 跑一次）</text>
@@ -68,6 +72,7 @@
     <text x="550" y="692" text-anchor="middle">（可选）删除共享库目录 → 系统回到「各自独立」状态</text>
   </g>
 
+  <!-- 箭头 -->
   <g stroke="#2563EB" stroke-width="2" fill="none">
     <line x1="550" y1="134" x2="550" y2="156" marker-end="url(#arr)"/>
     <line x1="320" y1="194" x2="294" y2="194" marker-end="url(#arr)"/>
