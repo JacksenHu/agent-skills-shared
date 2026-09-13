@@ -91,11 +91,28 @@ function Read-SkillFrontmatter {
     $m = [regex]::Match($text, '(?s)^---\s*\r?\n(.*?)\r?\n---')
     $meta = [ordered]@{}
     if ($m.Success) {
-        foreach ($line in ($m.Groups[1].Value -split "`r?`n")) {
+        $lines = $m.Groups[1].Value -split "`r?`n"
+        $i = 0
+        while ($i -lt $lines.Count) {
+            $line = $lines[$i]
             $kv = [regex]::Match($line, '^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*?)\s*$')
             if ($kv.Success) {
-                $meta[$kv.Groups[1].Value] = $kv.Groups[2].Value.Trim().Trim('"').Trim("'")
+                $key = $kv.Groups[1].Value
+                $val = $kv.Groups[2].Value.Trim().Trim('"').Trim("'")
+                # YAML 折叠块（>- / |- / > / |）：合并后续缩进行为一段文本
+                if ($val -match '^[>|][+-]?$') {
+                    $i++
+                    $chunks = @()
+                    while ($i -lt $lines.Count -and $lines[$i] -match '^\s+\S') {
+                        $chunks += $lines[$i].Trim()
+                        $i++
+                    }
+                    $meta[$key] = ($chunks -join ' ')
+                    continue
+                }
+                $meta[$key] = $val
             }
+            $i++
         }
     }
     return $meta
