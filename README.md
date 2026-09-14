@@ -13,7 +13,7 @@
 | --- | --- | --- |
 | 🗂️ **共享技能库** | 一套技能存一处，所有 Agent 通过目录联接实时共用；新增/更新/删除一处生效 | 自动（[1] 快速搭建） |
 | 🖥️ **专业终端控制台** | VT 真彩色渐变标题、双线框面板、状态栏、语义色；不支持 ANSI 自动降级 16 色 | 桌面快捷方式 / `setup-wizard.ps1` |
-| 🚀 **一键快速搭建** | 预设 12 个常见 Agent 路径、自动探测本机已装、`d` 全选；迁移去重 → 建联接 → 验证 全自动 | 向导 [1] |
+| 🚀 **一键快速搭建** | 预设常见 Agent 路径（13 个，含 Marvis 动态发现）、自动探测本机已装、`d` 全选；迁移去重 → 建联接 → 验证 全自动 | 向导 [1] |
 | 🧭 **技能管理** | 技能按 **9 大分类**自动归类；中文简介；GitHub / skills.sh 仓库链接一键安装；移除双重确认；分类浏览 | 向导 [3] |
 | 🔍 **扫描 Agent 技能** | 随时检测各 Agent 已安装技能，标注「已共享 / 冲突 / 独有」并给出迁移建议 | 向导 [5] |
 | 🔄 **检测更新** | 技能版本更新（对比来源仓库最新提交，可自动升级）+ 项目（工具）自身更新（一键升级） | 向导 [6] |
@@ -135,8 +135,8 @@ cd C:\agent-skills-shared        # 换成你实际解压/克隆的目录
 | [7] 帮助与文档 | docs 导航 + 常用命令速查 |
 | [0] 退出 | 结束会话 |
 
-搭建时**预设 12 个常见 Agent 技能路径**（Doubao、Claude Code、Codex、Cursor、Windsurf、
-OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy 等，均来自官方文档或实测），
+搭建时**预设 13 个常见 Agent 技能路径**（Doubao、Claude Code、Codex、Cursor、Windsurf、
+OpenClaw、Trae、Trae CN、GitHub Copilot、Zed、WorkBuddy、Marvis 等，均来自官方文档或实测），
 自动探测本机哪些已安装 → 输入 `d` **一键全选已检测到的**，或按编号勾选 → 回车确认。
 也支持**自定义路径**：直接输入任意 Agent 的技能根目录即可接入。
 
@@ -255,7 +255,7 @@ agent-skills-shared/
 │   ├── check-project-updates-flow.svg # 项目（工具）自身更新检测流程
 │   └── quickstart-flow.svg        # 快速使用流程（含桌面快捷方式）
 ├── config/
-│   └── agents.example.json        # Agent 路径配置模板（含 12 项预设）
+│   └── agents.example.json        # Agent 路径配置模板（含 13 项预设）
 └── scripts/
     ├── setup-wizard.ps1            # 交互式控制台：首页菜单（搭建/验证/技能管理/扫描/检查更新）
     ├── setup.ps1                   # 一键搭建：迁移（智能去重）+ 建联接 + 验证
@@ -307,6 +307,7 @@ agent-skills-shared/
 - **索引时机**：绝大多数 Agent 在会话启动时扫描技能，改动后需重启会话。
 - **API 配额**：技能更新检测（`check-updates.ps1`）与项目更新检测（`check-project-updates.ps1`）匿名访问 GitHub API 限速 60 次/小时，多技能/频繁检测时可设置 Token 提高配额。
 - **同一 Agent 多技能根 → 技能重复显示**：部分软件（如豆包）会同时扫描多个技能根，若这些根全部接入共享库，每个技能会被重复加载多份（豆包读 `.user_skills` / `Doubao\skills` / `.agents\skills` → 每技能 3 份）。脚本已内置「同源多根」防护：`setup.ps1` / `add-agent.ps1` 接入前自动检测并默认阻止，`verify.ps1` 会提示；建议每个软件只保留一个技能根接入共享库。
+- **Agent 技能根非固定目录**：个别软件（如腾讯 Marvis）的技能根含登录用户 ID（`%APPDATA%\Tencent\Marvis\User\<用户ID>\skills\custom`），重装/换账号可能变化。向导已对 Marvis 做**动态发现**（自动扫描 `User\` 下含技能的用户目录），无需手写路径；`agents.example.json` 中该条目为占位说明。
 - 本项目面向 Windows；macOS / Linux 用户可用符号链接（`ln -s`）实现同一思路。
 
 ## License
