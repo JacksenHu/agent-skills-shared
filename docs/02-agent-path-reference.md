@@ -5,7 +5,7 @@
 
 ## Windows 用户级技能目录
 
-> 以下 13 项已**预设**在 `setup-wizard.ps1` 的选择列表中（自动探测本机状态，`d` 一键全选已检测到的）。
+> 以下 23 项已**预设**在 `setup-wizard.ps1` 的选择列表中（自动探测本机状态，`d` 一键全选已检测到的）。
 
 | Agent | 用户级技能目录 | 项目级技能目录 | 来源 |
 | --- | --- | --- | --- |
@@ -22,6 +22,16 @@
 | **Zed** ✅ | `%USERPROFILE%\.agents\skills\`（Global） | `.agents\skills\` | [Zed 官方文档](https://zed.dev/docs/ai/skills) |
 | **WorkBuddy** ✅ | `%USERPROFILE%\.workbuddy\skills\` | — | 本机实测（用户指定） |
 | **Marvis（腾讯）** ⚠️ | `%APPDATA%\Tencent\Marvis\User\<用户ID>\skills\custom`（**用户 ID 非固定**，向导自动发现 User 下所有含技能的用户目录） | — | 本机实测（用户指定） |
+| **Gemini CLI** ✅ | `%USERPROFILE%\.gemini\skills\`；兼容 `%USERPROFILE%\.agents\skills\` | `.gemini\skills\`、`.agents\skills\` | [Gemini CLI 官方文档](https://geminicli.com/docs/cli/skills/) |
+| **OpenCode** ✅ | `%USERPROFILE%\.config\opencode\skills\`；兼容 `%USERPROFILE%\.claude\skills\` | `.opencode\skills\`、`.claude\skills\` | [OpenCode 官方文档](https://dev.opencode.ai/docs/skills) |
+| **Qoder** ✅ | `%USERPROFILE%\.qoder\skills\` | `.qoder\skills\` | [Qoder 官方文档](https://docs.qoder.com/cli/Skills) |
+| **Qoder CN（通义灵码）** ✅ | `%USERPROFILE%\.qoder-cn\skills\` | `.qoder\skills\` | [阿里云帮助中心](https://help.aliyun.com/zh/lingma/qodercli-cn/user-guide/skills) |
+| **Kiro（AWS，Amazon Q CLI 继任）** ✅ | `%USERPROFILE%\.kiro\skills\` | `.kiro\skills\` | [Kiro 官方文档](https://kiro.dev/docs/cli/skills/) |
+| **Cline** ✅ | `%USERPROFILE%\.cline\skills\` | `.cline\skills\`、`.clinerules\skills\` | [Cline 官方文档](https://docs.cline.bot/customization/skills) |
+| **Roo Code** ✅ | `%USERPROFILE%\.roo\skills\`；兼容 `%USERPROFILE%\.agents\skills\` | `.roo\skills\`、`.agents\skills\` | [Roo Code 官方文档](https://roocodeinc.github.io/Roo-Code/features/skills/) |
+| **Augment** ✅ | `%USERPROFILE%\.augment\skills\`；兼容 `%USERPROFILE%\.claude\skills\`、`%USERPROFILE%\.agents\skills\` | `.augment\skills\`、`.claude\skills\` | [Augment 官方文档](https://docs.augmentcode.com/cli/skills) |
+| **Crush** ⚠️ | `%USERPROFILE%\.config\crush\skills\` | — | 社区资料（[gist](https://gist.github.com/annextuckner/ad639503a0b5fc8cff863ae0559b53c5)），请以本机为准 |
+| **Pi** ⚠️ | `%USERPROFILE%\.pi\agent\skills\` | — | 社区资料（[Skillkit](https://skillkit.net/)），请以本机为准 |
 
 > `%LOCALAPPDATA%` = `C:\Users\<你>\AppData\Local`；`%USERPROFILE%` = `C:\Users\<你>`。
 
@@ -39,10 +49,11 @@
 - **Zed** 全局技能目录就是它；
 - **GitHub Copilot** / **VS Code** / **Visual Studio** 都支持读它（与 `~/.copilot/skills` 并列）；
 - **Doubao** 也把 `%USERPROFILE%\.agents\skills` 注册为技能根之一；
-- **Trae** 也读取 `.agents/skills`。
+- **Trae** 也读取 `.agents/skills`；
+- **Gemini CLI** / **OpenCode** / **Roo Code** / **Augment** / **Goose** / **Warp** 均兼容读取 `.agents/skills`（或 `.claude/skills`）。
 
 因此本方案在预设清单中把 `~\.agents\skills` 作为跨 Agent 的共享入口，
-一份联接即可覆盖 Codex / Cursor / Zed / Copilot / Doubao / Trae 等多个 Agent。
+一份联接即可覆盖 Codex / Cursor / Zed / Copilot / Doubao / Trae / Gemini CLI / Roo Code / Augment / Goose / Warp 等多个 Agent。
 
 > ⚠️ **多技能根 → 重复加载**：部分软件会**同时读多个根**（豆包读
 > `.user_skills` + `Doubao\skills` + `.agents\skills`，Trae 读 `.trae-cn\skills` +
@@ -54,7 +65,7 @@
 ## 如何确认你机器上的真实路径
 
 ```powershell
-# 列出可能存在的技能根（覆盖预设清单全部 13 项）
+# 列出可能存在的技能根（覆盖预设清单全部 23 项）
 $paths = @(
   "$env:LOCALAPPDATA\Doubao\User Data\Default\.doubao\agent_mode\workspace\.user_skills",
   "$env:USERPROFILE\Doubao\skills",
@@ -67,7 +78,17 @@ $paths = @(
   "$env:USERPROFILE\.trae\skills",
   "$env:USERPROFILE\.trae-cn\skills",
   "$env:USERPROFILE\.copilot\skills",
-  "$env:USERPROFILE\.workbuddy\skills"
+  "$env:USERPROFILE\.workbuddy\skills",
+  "$env:USERPROFILE\.gemini\skills",
+  "$env:USERPROFILE\.config\opencode\skills",
+  "$env:USERPROFILE\.qoder\skills",
+  "$env:USERPROFILE\.qoder-cn\skills",
+  "$env:USERPROFILE\.kiro\skills",
+  "$env:USERPROFILE\.cline\skills",
+  "$env:USERPROFILE\.roo\skills",
+  "$env:USERPROFILE\.augment\skills",
+  "$env:USERPROFILE\.config\crush\skills",
+  "$env:USERPROFILE\.pi\agent\skills"
 )
 # Marvis 用户 ID 非固定：动态列出所有含技能的用户目录
 $marvisUserDir = Join-Path $env:APPDATA 'Tencent\Marvis\User'

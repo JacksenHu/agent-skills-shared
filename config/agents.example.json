@@ -13,6 +13,16 @@
     "trae-cn": "C:\\Users\\<你的用户名>\\.trae-cn\\skills",
     "copilot": "C:\\Users\\<你的用户名>\\.copilot\\skills",
     "workbuddy": "C:\\Users\\<你的用户名>\\.workbuddy\\skills",
-    "marvis": "C:\\Users\\<你的用户名>\\AppData\\Roaming\\Tencent\\Marvis\\User\\<Marvis用户ID>\\skills\\custom"
+    "marvis": "C:\\Users\\<你的用户名>\\AppData\\Roaming\\Tencent\\Marvis\\User\\<Marvis用户ID>\\skills\\custom",
+    "gemini-cli": "C:\\Users\\<你的用户名>\\.gemini\\skills",
+    "opencode": "C:\\Users\\<你的用户名>\\.config\\opencode\\skills",
+    "qoder": "C:\\Users\\<你的用户名>\\.qoder\\skills",
+    "qoder-cn": "C:\\Users\\<你的用户名>\\.qoder-cn\\skills",
+    "kiro": "C:\\Users\\<你的用户名>\\.kiro\\skills",
+    "cline": "C:\\Users\\<你的用户名>\\.cline\\skills",
+    "roo-code": "C:\\Users\\<你的用户名>\\.roo\\skills",
+    "augment": "C:\\Users\\<你的用户名>\\.augment\\skills",
+    "crush": "C:\\Users\\<你的用户名>\\.config\\crush\\skills",
+    "pi": "C:\\Users\\<你的用户名>\\.pi\\agent\\skills"
   }
 }

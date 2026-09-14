@@ -14,7 +14,11 @@
 $script:SameSourceGroups = @(
     @{ Name = 'Doubao（豆包）'; Patterns = @('*\.doubao\agent_mode\workspace\.user_skills', '*\doubao\skills', '*\.agents\skills') },
     @{ Name = 'Codex / Cursor / Zed / GitHub Copilot'; Patterns = @('*\.agents\skills', '*\.codex\skills', '*\.cursor\skills', '*\.copilot\skills', '*\.zed\skills') },
-    @{ Name = 'Trae / Trae CN'; Patterns = @('*\.agents\skills', '*\.trae\skills', '*\.trae-cn\skills') }
+    @{ Name = 'Trae / Trae CN'; Patterns = @('*\.agents\skills', '*\.trae\skills', '*\.trae-cn\skills') },
+    @{ Name = 'Gemini CLI'; Patterns = @('*\.agents\skills', '*\.gemini\skills') },
+    @{ Name = 'OpenCode'; Patterns = @('*\.agents\skills', '*\.claude\skills', '*\.config\opencode\skills') },
+    @{ Name = 'Roo Code'; Patterns = @('*\.agents\skills', '*\.roo\skills') },
+    @{ Name = 'Augment'; Patterns = @('*\.agents\skills', '*\.claude\skills', '*\.augment\skills') }
 )
 
 function Test-SameSourcePattern {
