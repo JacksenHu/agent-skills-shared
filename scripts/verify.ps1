@@ -51,6 +51,19 @@ foreach ($a in $agentPaths) {
     }
     $item = Get-Item $root -Force
     if ($item.LinkType -ne 'Junction') {
+        # 「归并·空」：该根属于"会被同一软件同时扫描"的组，且已是空目录
+        # → 是 merge-agent-roots.ps1 归并后的预期状态，不视为失败
+        $isEmpty = @(Get-ChildItem $root -Force).Count -eq 0
+        if ($isEmpty) {
+            $inGroup = $false
+            foreach ($g in $script:SameSourceGroups) {
+                if (Test-SameSourcePattern $root $g.Patterns) { $inGroup = $true; break }
+            }
+            if ($inGroup) {
+                Write-Host ("[归并·空] {0,-18} 空目录（已归并，软件不再重复加载）: {1}" -f $a.Name, $root) -ForegroundColor Yellow
+                continue
+            }
+        }
         Write-Host ("[FAIL] {0,-22} 不是联接（是真实目录？）: {1}" -f $a.Name, $root) -ForegroundColor Red
         $failCount++
         continue
@@ -65,9 +78,25 @@ foreach ($a in $agentPaths) {
     Write-Host ("[OK]   {0,-22} -> {1}（{2} 个 SKILL.md）" -f $a.Name, $target, $count) -ForegroundColor Green
 }
 
-# ---------- 重复入口检测（不阻塞，仅提示） ----------
-$conflicts = Get-SameSourceConflicts @($agentPaths | ForEach-Object { $_.Path })
+# ---------- 重复入口检测（不阻塞，仅提示；已归并的空根不参与统计） ----------
+$conflictPaths = @($agentPaths | Where-Object {
+    $p = $_.Path
+    if (-not (Test-Path $p)) { return $true }   # 缺失仍报（前面已 FAIL）
+    $it = Get-Item $p -Force
+    if ($it.LinkType -eq 'Junction') { return $true }
+    # 非联接：仅当「空目录 + 命中多根组模式」时视为已归并，排除出重复统计
+    if (@(Get-ChildItem $p -Force).Count -eq 0) {
+        foreach ($g in $script:SameSourceGroups) {
+            if (Test-SameSourcePattern $p $g.Patterns) { return $false }
+        }
+    }
+    return $true
+} | ForEach-Object { $_.Path })
+$conflicts = Get-SameSourceConflicts @($conflictPaths)
 Show-ConflictWarning $conflicts | Out-Null
+if ($conflicts -and $conflicts.Count -gt 0) {
+    Write-Host '  根治方法：运行 .\scripts\merge-agent-roots.ps1 一键归并，每个软件只保留一个技能根。' -ForegroundColor DarkGray
+}
 
 Write-Host "`n========== 验证结果 ==========" -ForegroundColor Cyan
 if ($failCount -eq 0) {

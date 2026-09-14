@@ -881,6 +881,7 @@ function Show-Help {
     Show-BoxRow '检查项目（工具）更新 .\scripts\check-project-updates.ps1  （-Update 升级，公开仓库匿名即可）' text
     Show-BoxRow '接入 Agent    .\scripts\add-agent.ps1 -AgentName 名 -RootPath 路径' text
     Show-BoxRow '移除 Agent    .\scripts\remove-agent.ps1 -AgentName 名 -RootPath 路径' text
+    Show-BoxRow '归并多技能根  .\scripts\merge-agent-roots.ps1  （消除豆包/Trae 多根重复加载）' text
     Show-BoxRow '安装技能（仓库链接）.\scripts\install-skill.ps1 -RepoUrl <仓库地址>' text
     Show-BoxRow '安装技能（skills.sh）.\scripts\install-skill.ps1 -RepoUrl <skills 链接>' text
     Show-BoxBlank
@@ -1013,6 +1014,7 @@ function Show-MainMenu {
                     Show-BoxTop '接入 / 移除 Agent' primary
                     Show-BoxRowColor @(@{ T = '  [a] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '接入新 Agent' 14); C = 'white'; B = $true }, @{ T = '建联接，数据自动迁移'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [b] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '移除 Agent' 14); C = 'white'; B = $true }, @{ T = '拆联接，数据保留在共享库'; C = 'dim' })
+                    Show-BoxRowColor @(@{ T = '  [c] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '归并多技能根' 14); C = 'white'; B = $true }, @{ T = '消除重复加载（豆包/Trae 多根）'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [q] '; C = 'gold'; B = $true }, @{ T = (Pad-Width '返回主菜单' 14); C = 'white'; B = $true })
                     Show-BoxBottom primary
                     Write-C ("? 请选择  ") -C text -NoNewline
@@ -1022,6 +1024,13 @@ function Show-MainMenu {
                     switch ($sub) {
                         'a' { Add-AgentInteractive }
                         'b' { Remove-AgentInteractive }
+                        'c' {
+                            Write-C ''
+                            Show-BoxTop '归并多技能根' primary
+                            Show-BoxBottom primary
+                            & (Join-Path $PSScriptRoot 'merge-agent-roots.ps1') -ConfigPath $ConfigPath
+                            Write-C ''
+                        }
                         default { Write-Err '无效选项。' }
                     }
                 }
