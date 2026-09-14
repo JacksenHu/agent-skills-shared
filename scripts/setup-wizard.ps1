@@ -659,6 +659,21 @@ function Invoke-SetupFlow {
         $sharedRoot = if ($in) { [IO.Path]::GetFullPath($in) } else { $defaultShared }
 
         Show-StepBadge 2 3 '选择要接入的 Agent（预设常见 Agent 路径，自动探测本机状态）'
+        # Marvis：技能根在 %APPDATA%\Tencent\Marvis\User\<用户ID>\skills\custom，用户 ID 非固定 → 动态发现
+        $marvisUserDir = Join-Path $env:APPDATA 'Tencent\Marvis\User'
+        $marvisUsers = @()
+        if (Test-Path $marvisUserDir) {
+            # 只收录「skills\custom 存在且有内容」的用户目录（default_user 空壳会被过滤）
+            $marvisUsers = @(Get-ChildItem $marvisUserDir -Directory -Force | Where-Object {
+                $custom = Join-Path $_.FullName 'skills\custom'
+                (Test-Path $custom) -and (@(Get-ChildItem $custom -Force).Count -gt 0)
+            })
+            if ($marvisUsers.Count -eq 0) {
+                $df = Get-Item (Join-Path $marvisUserDir 'default_user') -Force -ErrorAction SilentlyContinue
+                if ($df -and (Test-Path (Join-Path $df.FullName 'skills\custom'))) { $marvisUsers = @($df) }
+            }
+        }
+
         $detectors = @(
             @{ Key = 'doubao-user-skills'; Label = 'Doubao（豆包）用户技能'; Path = (Join-Path $env:LOCALAPPDATA 'Doubao\User Data\Default\.doubao\agent_mode\workspace\.user_skills') },
             @{ Key = 'doubao-extra';        Label = 'Doubao（豆包）其他技能根'; Path = (Join-Path $env:USERPROFILE 'Doubao\skills') },
@@ -673,6 +688,14 @@ function Invoke-SetupFlow {
             @{ Key = 'copilot';             Label = 'GitHub Copilot';          Path = (Join-Path $env:USERPROFILE '.copilot\skills') },
             @{ Key = 'workbuddy';           Label = 'WorkBuddy';               Path = (Join-Path $env:USERPROFILE '.workbuddy\skills') }
         )
+        # Marvis 动态追加（用户 ID 非固定，逐个用户目录加入选择；单用户时键名用 marvis）
+        $marvisIdx = 0
+        foreach ($mu in $marvisUsers) {
+            $marvisIdx++
+            $short = if ($mu.Name.Length -gt 10) { $mu.Name.Substring(0, 10) + '…' } else { $mu.Name }
+            $mKey = if ($marvisIdx -eq 1) { 'marvis' } else { 'marvis-' + $marvisIdx }
+            $detectors += @{ Key = $mKey; Label = ('Marvis（用户 ' + $short + '）'); Path = (Join-Path $mu.FullName 'skills\custom') }
+        }
         $choices = @()
         $detectedFlags = @()
         for ($i = 0; $i -lt $detectors.Count; $i++) {
