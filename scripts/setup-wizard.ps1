@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   统一技能库 · 管理控制台（专业版界面）
@@ -164,7 +164,12 @@ function Show-BoxTop {
     param([string]$Title = '', [string]$C = 'border')
     if ($Title) {
         $t = "─ $Title "
+        # 超长标题防御：截断到框内，避免 ('─' * 负数) 抛异常
+        if ((Get-Width $t) -gt ($script:BoxW - 2)) {
+            $t = "─ " + (Truncate-Width $Title ($script:BoxW - 6)) + " "
+        }
         $dash = $script:BoxW - (Get-Width $t)
+        if ($dash -lt 0) { $dash = 0 }
         Write-C ("╔" + $t + ('─' * $dash) + "╗") -C $C
     } else {
         Write-C ("╔" + ('═' * $script:BoxW) + "╗") -C $C
@@ -658,7 +663,7 @@ function Invoke-SetupFlow {
         $in = (Read-Host).Trim()
         $sharedRoot = if ($in) { [IO.Path]::GetFullPath($in) } else { $defaultShared }
 
-        Show-StepBadge 2 3 '选择要接入的 Agent（预设常见 Agent 路径，自动探测本机状态）'
+        Show-StepBadge 2 3 '选择要接入的 Agent（自动探测本机状态）'
         # Marvis：技能根在 %APPDATA%\Tencent\Marvis\User\<用户ID>\skills\custom，用户 ID 非固定 → 动态发现
         $marvisUserDir = Join-Path $env:APPDATA 'Tencent\Marvis\User'
         $marvisUsers = @()
@@ -716,6 +721,11 @@ function Invoke-SetupFlow {
             $agentList += [pscustomobject]@{ Name = $c.Key; Path = $c.Path }
         }
 
+        if ($agentList.Count -eq 0) {
+            Write-Err '未选择任何 Agent，已取消，未做任何修改。'
+            return
+        }
+
         if (Read-YesNo '添加自定义 Agent 路径？' $false) {
             Write-C '格式：名称=完整路径（如 myagent=C:\Users\me\.myagent\skills），空行结束' -C dim
             while ($true) {
@@ -730,11 +740,6 @@ function Invoke-SetupFlow {
                 if (-not $name -or -not $path) { Write-Err '名称或路径为空，已忽略。'; continue }
                 $agentList += [pscustomobject]@{ Name = $name; Path = [IO.Path]::GetFullPath($path) }
             }
-        }
-
-        if ($agentList.Count -eq 0) {
-            Write-Err '未选择任何 Agent，已取消，未做任何修改。'
-            return
         }
 
         Show-StepBadge 3 3 '确认配置'
@@ -969,7 +974,9 @@ function Show-MainMenu {
         Write-C ("? 请选择  ") -C text -NoNewline
         Write-C '[0-7]' -C dim -NoNewline
         Write-C '  > ' -C primary -NoNewline
-        $choice = (Read-Host).Trim()
+        $choice = [string](Read-Host)
+        if ($null -eq $choice) { return }          # 输入流关闭（EOF）时安全退出
+        $choice = $choice.Trim()
 
         switch ($choice) {
             '1' { Invoke-SetupFlow }
