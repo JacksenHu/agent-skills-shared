@@ -593,6 +593,16 @@ function Install-SkillInteractive {
 #  接入 / 移除 Agent
 # =====================================================================
 function Add-AgentInteractive {
+    # 显示当前已接入 Agent 数（config 中存在多少个）
+    $already = 0
+    if (Test-Path $ConfigPath) {
+        try {
+            $cfg0 = Get-Content $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $already = @($cfg0.agents.PSObject.Properties).Count
+        } catch { $already = 0 }
+    }
+    Write-C ("当前已配置 {0} 个 Agent（接入后共 {1} 个）" -f $already, ($already + 1)) -C accent -Bold
+    Write-C ''
     Write-C ("? 输入 Agent 名称（如 myagent，q 取消）  ") -C text -NoNewline
     Write-C '> ' -C primary -NoNewline
     $name = (Read-Host).Trim()
@@ -664,6 +674,16 @@ function Invoke-SetupFlow {
         $sharedRoot = if ($in) { [IO.Path]::GetFullPath($in) } else { $defaultShared }
 
         Show-StepBadge 2 3 '选择要接入的 Agent（自动探测本机状态）'
+        # 显示当前已配置 Agent 数（config\agents.json 中已有多少个）
+        $cfgCount = 0
+        if (Test-Path $ConfigPath) {
+            try {
+                $cfgNow = Get-Content $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $cfgCount = @($cfgNow.agents.PSObject.Properties).Count
+            } catch { $cfgCount = 0 }
+        }
+        Write-C ("  当前已配置 {0} 个 Agent，本次可继续勾选接入" -f $cfgCount) -C accent -Bold
+        Write-C ''
         # Marvis：技能根在 %APPDATA%\Tencent\Marvis\User\<用户ID>\skills\custom，用户 ID 非固定 → 动态发现
         $marvisUserDir = Join-Path $env:APPDATA 'Tencent\Marvis\User'
         $marvisUsers = @()
@@ -691,7 +711,17 @@ function Invoke-SetupFlow {
             @{ Key = 'trae';                Label = 'Trae（国际版）';          Path = (Join-Path $env:USERPROFILE '.trae\skills') },
             @{ Key = 'trae-cn';             Label = 'Trae CN（国内版）';       Path = (Join-Path $env:USERPROFILE '.trae-cn\skills') },
             @{ Key = 'copilot';             Label = 'GitHub Copilot';          Path = (Join-Path $env:USERPROFILE '.copilot\skills') },
-            @{ Key = 'workbuddy';           Label = 'WorkBuddy';               Path = (Join-Path $env:USERPROFILE '.workbuddy\skills') }
+            @{ Key = 'workbuddy';           Label = 'WorkBuddy';               Path = (Join-Path $env:USERPROFILE '.workbuddy\skills') },
+            @{ Key = 'gemini-cli';          Label = 'Gemini CLI';              Path = (Join-Path $env:USERPROFILE '.gemini\skills') },
+            @{ Key = 'opencode';            Label = 'OpenCode';                Path = (Join-Path $env:USERPROFILE '.config\opencode\skills') },
+            @{ Key = 'qoder';               Label = 'Qoder';                   Path = (Join-Path $env:USERPROFILE '.qoder\skills') },
+            @{ Key = 'qoder-cn';            Label = 'Qoder CN（通义灵码）';      Path = (Join-Path $env:USERPROFILE '.qoder-cn\skills') },
+            @{ Key = 'kiro';                Label = 'Kiro（AWS）';              Path = (Join-Path $env:USERPROFILE '.kiro\skills') },
+            @{ Key = 'cline';               Label = 'Cline';                   Path = (Join-Path $env:USERPROFILE '.cline\skills') },
+            @{ Key = 'roo-code';            Label = 'Roo Code';                Path = (Join-Path $env:USERPROFILE '.roo\skills') },
+            @{ Key = 'augment';             Label = 'Augment';                 Path = (Join-Path $env:USERPROFILE '.augment\skills') },
+            @{ Key = 'crush';               Label = 'Crush';                   Path = (Join-Path $env:USERPROFILE '.config\crush\skills') },
+            @{ Key = 'pi';                  Label = 'Pi';                      Path = (Join-Path $env:USERPROFILE '.pi\agent\skills') }
         )
         # Marvis 动态追加（用户 ID 非固定，逐个用户目录加入选择；单用户时键名用 marvis）
         $marvisIdx = 0
