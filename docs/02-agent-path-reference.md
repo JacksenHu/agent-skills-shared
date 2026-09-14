@@ -44,6 +44,13 @@
 因此本方案在预设清单中把 `~\.agents\skills` 作为跨 Agent 的共享入口，
 一份联接即可覆盖 Codex / Cursor / Zed / Copilot / Doubao / Trae 等多个 Agent。
 
+> ⚠️ **多技能根 → 重复加载**：部分软件会**同时读多个根**（豆包读
+> `.user_skills` + `Doubao\skills` + `.agents\skills`，Trae 读 `.trae-cn\skills` +
+> `.agents\skills`）。若这些根全部接入共享库，软件会把每份技能重复加载多份。
+> 接入时脚本会自动检测并默认阻止；已接入的用
+> `.\scripts\merge-agent-roots.ps1`（向导 [4]c）**一键归并**到单个根，
+> 重复立即消除。详见 `docs/04` 第 6b 节。
+
 ## 如何确认你机器上的真实路径
 
 ```powershell
