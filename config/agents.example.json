@@ -12,6 +12,7 @@
     "trae": "C:\\Users\\<你的用户名>\\.trae\\skills",
     "trae-cn": "C:\\Users\\<你的用户名>\\.trae-cn\\skills",
     "copilot": "C:\\Users\\<你的用户名>\\.copilot\\skills",
-    "workbuddy": "C:\\Users\\<你的用户名>\\.workbuddy\\skills"
+    "workbuddy": "C:\\Users\\<你的用户名>\\.workbuddy\\skills",
+    "marvis": "C:\\Users\\<你的用户名>\\AppData\\Roaming\\Tencent\\Marvis\\User\\<Marvis用户ID>\\skills\\custom"
   }
 }
