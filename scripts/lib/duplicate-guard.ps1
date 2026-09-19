@@ -1,4 +1,4 @@
-﻿# duplicate-guard.ps1 — 「同一 Agent 多技能根」重复加载防护
+# duplicate-guard.ps1 — 「同一 Agent 多技能根」重复加载防护
 # 被 setup.ps1 / add-agent.ps1 / verify.ps1 共用（dot-source 加载）
 #
 # 背景：部分软件（如豆包）会同时扫描多个已注册的技能根目录。
@@ -18,7 +18,8 @@ $script:SameSourceGroups = @(
     @{ Name = 'Gemini CLI'; Patterns = @('*\.agents\skills', '*\.gemini\skills') },
     @{ Name = 'OpenCode'; Patterns = @('*\.agents\skills', '*\.claude\skills', '*\.config\opencode\skills') },
     @{ Name = 'Roo Code'; Patterns = @('*\.agents\skills', '*\.roo\skills') },
-    @{ Name = 'Augment'; Patterns = @('*\.agents\skills', '*\.claude\skills', '*\.augment\skills') }
+    @{ Name = 'Augment'; Patterns = @('*\.agents\skills', '*\.claude\skills', '*\.augment\skills') },
+    @{ Name = 'CodeBuddy Code / WorkBuddy AI（国际版）'; Patterns = @('*\.codebuddy\skills', '*\.claude\skills') }
 )
 
 function Test-SameSourcePattern {
@@ -55,7 +56,7 @@ function Show-ConflictWarning {
     Write-Host '  （例：豆包同时读 .user_skills / Doubao\skills / .agents\skills → 每技能 3 份）。' -ForegroundColor DarkGray
     Write-Host '   建议：每个软件只保留一个技能根接入共享库，其余用 remove-agent.ps1 拆除。' -ForegroundColor DarkGray
     if ($Ask) {
-        Write-Host '? 仍然继续？（默认 n，取消执行） [y/N]  > ' -NoNewline
+        Write-Host '? 仍然继续？（默认 n，取消执行）  [y/N]  > ' -NoNewline
         $ans = (Read-Host).Trim().ToLower()
         return ($ans -eq 'y' -or $ans -eq 'yes')
     }
