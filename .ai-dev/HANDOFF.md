@@ -27,15 +27,16 @@
   - 翻译后重跑路由：`router-guide\SKILL.md` 143 条中 **122 条带中文简介**（此前约 87 条），未分类 36 → 30
   - 复验：14 个 `.ps1` Parser 0 错误、UTF-8 BOM 全在；code-index 已同步（22 文件 / 约 4656 行）
 - 进行中：
-  - 12 个技能待补翻（`seagull-*` ×6、`xlsx`、`web-deploy-github`、`web-design-guidelines`、`windows-kernel-security`、`test-driven-development`、`writing-plans`）——MyMemory 返回 **HTTP 429**（匿名按 IP 限每日额度），非代码问题
+  - 12 个技能待补翻（`seagull-*` ×6、`xlsx`、`web-deploy-github`、`web-design-guidelines`、`windows-kernel-security`、`test-driven-development`、`writing-plans`）——MyMemory 返回 **HTTP 429**（本机唯一可达的翻译接口，匿名按 IP 限每日额度），已交由定时任务自动补齐，非代码问题
 
 ## 下一步动作（checkbox，完成即勾选，不要重写整段）
 
 - [x] 实现 `translate-skill-intro.ps1` + `lib/translate.ps1` + 向导 `[3]f` + 文档/索引同步
 - [x] 真机跑通翻译并重新生成路由索引（中文覆盖 122/143）
-- [ ] 待补：额度恢复后重跑 `.\scripts\translate-skill-intro.ps1`（已翻译的自动跳过）；或加 `-Email <邮箱>` / 设环境变量 `MYMEMORY_EMAIL` 提高额度
-- [ ] 待真机验证（本环境做不了）：`install-skill.ps1` 的翻译/frontmatter 函数已改为从 `lib` 加载，需能联网的环境跑一次 `-RepoUrl` 安装确认无回归
-- [ ] 待用户确认（上一轮遗留）：重启豆包 / Trae 会话，确认归并重复技能根后技能列表未变空
+- [x] **安装路径真机验证完成**：`install-skill.ps1 -RepoUrl https://github.com/hgta23/findskills -SharedRoot <scratch>` 全链路通过（下载 → 识别 1 个技能 → 写 `_meta.json`），`source` / `branch` / `commitSha` / `installedAt` 字段齐全；`description` 经公共库 `Read-SkillFrontmatter` 解析、`descriptionZh` 经公共库 `ConvertTo-DescriptionZh` 写入 → 删本地实现改 dot-source 后**无回归**（证据：`.workbuddy-ai\tmp\install-test-meta.json`，测试用 scratch 库已清理）
+- [x] **剩余 12 个技能的翻译改为自动补齐**：定时任务 `5b8eebb2-9544-42ab-9d23-c0e2aa9e236c`（每天 03:00 重跑，2026-09-24 自动过期）；脚本幂等，已翻译的自动跳过
+- [ ] 可选加速：若要立刻补完，设环境变量 `MYMEMORY_EMAIL=<邮箱>` 或加 `-Email <邮箱>`（MyMemory 的 `de=` 参数可把匿名额度提高一个数量级；**本次未擅自提交用户邮箱**）
+- [ ] 待用户确认（前一环节遗留）：重启豆包 / Trae 会话，确认归并重复技能根后技能列表未变空
 
 ## 本次形成的关键约束 / 决策（新会话必须遵守）
 
@@ -54,6 +55,8 @@
 - **`Write-Host "..." -f $a,$b -ForegroundColor X` 会静默崩脚本**：`-f` 被 PowerShell 按**无歧义参数缩写**解析成 `-ForegroundColor`，于是把 `$a` 当颜色名 → `ParameterBindingException`（已实测确认）。格式化串**必须加括号**：`Write-Host ("..." -f $a,$b) -ForegroundColor X`。本次脚本"打印进度后无声死掉"就是这个。
 - **PS 函数返回数组别用 `return ,$arr`**：调用方再套 `@()` 会得到嵌套数组（`$x[0].Length` 变成元素个数），本次导致分块翻译失效、把 992 字符整段发给接口。
 - **MyMemory 把错误信息塞在 `translatedText` 里正常返回**（`QUERY LENGTH LIMIT EXCEEDED` / `MYMEMORY WARNING` / `NO QUERY SPECIFIED`）→ 必须逐条识别为失败，否则会被当成译文；超限时 HTTP 状态码是 **429**。
+- **本机出网只放通少数域名**（沙箱代理）：翻译接口里**只有 `api.mymemory.translated.net` 通**——`translate.googleapis.com` 与 `clients5.google.com` 报 `Tunnel connection failed: 502`、`edge.microsoft.com/translate/auth` 404、`libretranslate.de` 403、`lt.vern.cc` 502。**别指望 Google 兜底**；MyMemory 一旦 429，本环境当次翻译链路就是不可用，只能等次日额度重置。
+- `Write-Progress`（`Expand-Archive`、下载进度条）**不会被 `*>` 重定向捕获**，会直接刷屏且无法落盘；判断这类命令的结果要看它自己写的文件。
 - **进度行不要用 `` `r `` 覆盖**：输出重定向到文件时 `` `r `` 不换行，整段日志挤成一行，`grep`/`tail` 全失效（排查时白绕一圈）。要抓日志就用普通换行。
 
 ## 本次改动文件清单
@@ -68,6 +71,8 @@
 | `.ai-dev/code-index.md` | 22 文件 / 约 4656 行 | 新增源码文件 |
 | `.ai-dev/lessons.md` | 追加环境级长期坑 | HANDOFF 陷阱区超载，按 START_HERE §2 提升 |
 | 本机共享库（非仓库内容） | 131 个技能的 `_meta.json` 写入 `descriptionZh`；`router-guide\SKILL.md` 重生成 | 功能介绍的落点 |
+| 本机 scratch 共享库（非仓库内容） | 跑通 `install-skill.ps1` 验证后已清理，证据留 `.workbuddy-ai\tmp\install-test-meta.json` | 验证改 dot-source 无回归 |
+| 定时任务 `5b8eebb2-…`（非仓库内容） | 每天 03:00 重跑翻译，补完剩余 12 个技能 | 外部配额受限，改为自动补齐 |
 
 ---
 
