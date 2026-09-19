@@ -44,7 +44,7 @@
 - [x] 用户决策：删除旧版向导备份 → 已进回收站（`%SYSTEMDRIVE%\$Recycle.Bin\<SID>\$R36CSC7.bak`，29425 字节，可还原）
 - [x] 真机跑通关键路径：`verify.ps1` 全绿（exit 0）、`generate-router-skill.ps1` 生成结果幂等（sha256 未变）
 - [x] 重复技能根已归并（保留 `~\.agents\skills`，清空 2 个重复根）。回退命令：`New-Item -ItemType Junction -Path "<被清空的根>" -Target "%USERPROFILE%\skills\shared" -Force`
-- [ ] 待确认：`VERSION` 是否随本次行为变更 bump（现仍 1.0.0；bump 会让其它机器的 `check-project-updates` 提示更新）
+- [x] `VERSION` 已 bump：`1.0.0 → 1.1.0`（用户在第三轮确认）。判定逻辑是 `-eq` 比较，**不相等即报 `[有更新]`**，所以其它机器下次 `check-project-updates.ps1` 会提示升级
 
 ## 本次形成的关键约束 / 决策（新会话必须遵守）
 
@@ -85,6 +85,7 @@
 | `README.md`、`docs/01-architecture.md`、`docs/03-setup-guide.md` | 改为"全量收录，不设排除名单" | 与代码保持一致 |
 | `.ai-dev/code-index.md` | 行数校正（generate-router-skill 199→186、总 4322→4309） | START_HERE §3.2 |
 | 本机环境（非仓库内容） | 清空豆包 user_skills 与 `.trae-cn\skills` 两个重复根 | 消除重复加载 |
+| `VERSION` | `1.0.0` → `1.1.0` | 本轮行为变更，触发其它机器的更新提示 |
 | `scripts/sync-rules.ps1`、`config/rules.example.md` | **移出项目** → `..\tools\rule-sync\` | 与本仓库零引用关系，不属本项目 |
 | `scripts/setup-wizard.ps1.bak` | 删除（进回收站） | 已被 597→1115 行版本取代的中间草稿 |
 
