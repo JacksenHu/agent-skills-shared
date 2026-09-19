@@ -22,6 +22,11 @@
 | git 的 stderr 输出被 PowerShell 当错误显示 | NativeCommandError 是显示层误报 | 以退出码/实际结果判断，clone 成功即成功 |
 | 提交信息含中文经 GBK 控制台乱码 | ConvertTo-Json/控制台编码 | git 提交信息用 ASCII 英文 |
 | setup-wizard.ps1 内容超 Read 25000 token 单行限额 | 单行 payload 过大 | 大文件走 git clone→覆盖→commit→push 通道 |
+| 本机 `git fetch/push` 不落盘 `refs/remotes/origin/*` | 引用目录写不进；`status` 长期显示 `[ahead 1]`，手打 SHA 补引用会显示 `[gone]`，全是假象 | 一律以 `git ls-remote origin refs/heads/main` 为权威；要修本地显示就手写 `.git/packed-refs`，**SHA 必须复制命令输出的完整 40 位**并 `git cat-file -e` 校验 |
+| AI 执行环境（PowerShell 工具）起不了子进程、禁 `Add-Type`/反射、回传输出被吞 | `cmd /c`、`powershell -File`、`Add-Type` 均不可用或静默失败 | 抓脚本输出用同会话重定向 `& .\scripts\x.ps1 *> out.txt`（UTF-16LE，读前 `iconv -f UTF-16LE -t UTF-8`）；删到回收站用 python ctypes `SHFileOperationW`；访问网络用 python urllib 或 git |
+| `Write-Host "..." -f $a,$b -ForegroundColor X` 直接崩 | `-f` 被按**无歧义参数缩写**解析为 `-ForegroundColor`，`$a` 被当颜色名 → `ParameterBindingException`，且脚本"打完上一条进度就无声消失" | 格式化串**必须加括号**：`Write-Host ("..." -f $a,$b) -ForegroundColor X` |
+| PS 函数返回数组用 `return ,$arr` + 调用方 `@()` | 会得到嵌套数组，`$x[0].Length` 变成元素个数，取到错数据（如分块失效） | 函数正常 `return $arr`（管道自动展开），调用方用 `@()` 收集即可 |
+| 进度输出用 `` `r `` 覆盖同一行 | 重定向到文件时 `` `r `` 不换行，整段日志挤成一行，`grep`/`tail` 全部失效 | 非交互或可能被重定向的脚本一律逐行输出，不要 `` `r `` |
 
 ## 数据与外部系统
 
