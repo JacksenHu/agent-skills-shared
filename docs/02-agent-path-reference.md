@@ -5,7 +5,7 @@
 
 ## Windows 用户级技能目录
 
-> 以下 23 项已**预设**在 `setup-wizard.ps1` 的选择列表中（自动探测本机状态，`d` 一键全选已检测到的）。
+> 以下 24 项已**预设**在 `setup-wizard.ps1` 的选择列表中（自动探测本机状态，`d` 一键全选已检测到的）。
 
 | Agent | 用户级技能目录 | 项目级技能目录 | 来源 |
 | --- | --- | --- | --- |
@@ -20,7 +20,8 @@
 | **Trae CN（国内版）** ✅ | `%USERPROFILE%\.trae-cn\skills\` | `.trae\skills\` | [Trae CN 官方文档](https://docs.trae.cn/ide_skills) |
 | **GitHub Copilot** ✅ | `%USERPROFILE%\.copilot\skills\`、`%USERPROFILE%\.agents\skills\` | `.github\skills\`、`.agents\skills\` | [GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/add-skills) |
 | **Zed** ✅ | `%USERPROFILE%\.agents\skills\`（Global） | `.agents\skills\` | [Zed 官方文档](https://zed.dev/docs/ai/skills) |
-| **WorkBuddy** ✅ | `%USERPROFILE%\.workbuddy\skills\` | — | 本机实测（用户指定） |
+| **WorkBuddy（国内版）** ✅ | `%USERPROFILE%\.workbuddy\skills\` | — | 本机实测（用户指定）；[腾讯云开发者社区](https://cloud.tencent.com/developer/article/2656859) |
+| **CodeBuddy Code / WorkBuddy AI（国际版）** ✅ | `%USERPROFILE%\.codebuddy\skills\` | `.codebuddy\skills\` | [WorkBuddy 官方文档](https://www.workbuddy.ai/docs/cli/skills) / [CodeBuddy 官方文档](https://www.codebuddy.ai/docs/zh/cli/skills) |
 | **Marvis（腾讯）** ⚠️ | `%APPDATA%\Tencent\Marvis\User\<用户ID>\skills\custom`（**用户 ID 非固定**，向导自动发现 User 下所有含技能的用户目录） | — | 本机实测（用户指定） |
 | **Gemini CLI** ✅ | `%USERPROFILE%\.gemini\skills\`；兼容 `%USERPROFILE%\.agents\skills\` | `.gemini\skills\`、`.agents\skills\` | [Gemini CLI 官方文档](https://geminicli.com/docs/cli/skills/) |
 | **OpenCode** ✅ | `%USERPROFILE%\.config\opencode\skills\`；兼容 `%USERPROFILE%\.claude\skills\` | `.opencode\skills\`、`.claude\skills\` | [OpenCode 官方文档](https://dev.opencode.ai/docs/skills) |
@@ -56,16 +57,16 @@
 一份联接即可覆盖 Codex / Cursor / Zed / Copilot / Doubao / Trae / Gemini CLI / Roo Code / Augment / Goose / Warp 等多个 Agent。
 
 > ⚠️ **多技能根 → 重复加载**：部分软件会**同时读多个根**（豆包读
-> `.user_skills` + `Doubao\skills` + `.agents\skills`，Trae 读 `.trae-cn\skills` +
+> `Doubao\skills` + `.agents\skills`，Trae 读 `.trae-cn\skills` +
 > `.agents\skills`）。若这些根全部接入共享库，软件会把每份技能重复加载多份。
 > 接入时脚本会自动检测并默认阻止；已接入的用
 > `.\scripts\merge-agent-roots.ps1`（向导 [4]c）**一键归并**到单个根，
-> 重复立即消除。详见 `docs/04` 第 6b 节。
+> 重复立即消除。详见 `docs/04` 第 6b 节与 `docs/06` Q20（含豆包空壳根改名根治）。
 
 ## 如何确认你机器上的真实路径
 
 ```powershell
-# 列出可能存在的技能根（覆盖预设清单全部 23 项）
+# 列出可能存在的技能根（覆盖预设清单全部 24 项）
 $paths = @(
   "$env:LOCALAPPDATA\Doubao\User Data\Default\.doubao\agent_mode\workspace\.user_skills",
   "$env:USERPROFILE\Doubao\skills",
@@ -79,6 +80,7 @@ $paths = @(
   "$env:USERPROFILE\.trae-cn\skills",
   "$env:USERPROFILE\.copilot\skills",
   "$env:USERPROFILE\.workbuddy\skills",
+  "$env:USERPROFILE\.codebuddy\skills",
   "$env:USERPROFILE\.gemini\skills",
   "$env:USERPROFILE\.config\opencode\skills",
   "$env:USERPROFILE\.qoder\skills",
