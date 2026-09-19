@@ -36,6 +36,12 @@
 
 > `%LOCALAPPDATA%` = `C:\Users\<你>\AppData\Local`；`%USERPROFILE%` = `C:\Users\<你>`。
 
+> 💡 **探测逻辑**：CodeBuddy / WorkBuddy 预设项采用**父目录探测**——只要
+> `~\.codebuddy`（或 `~\.workbuddy`）存在即视为「已安装」，即使 `skills` 子目录
+> 尚未创建，也会显示「✅ 已安装·技能根待创建」并可勾选接入（接入时自动创建联接）。
+> 注意 `~\.codebuddy\skills-marketplace\skills` 是**技能市场下载目录**，由市场管理，
+> 不要接入共享库。
+
 ## 扫描优先级（同名技能时谁生效）
 
 - **Claude Code**：Enterprise > Personal（`~/.claude/skills`）> Project（`.claude/skills`）> Plugin

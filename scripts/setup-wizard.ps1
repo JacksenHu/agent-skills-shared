@@ -711,8 +711,8 @@ function Invoke-SetupFlow {
             @{ Key = 'trae';                Label = 'Trae（国际版）';          Path = (Join-Path $env:USERPROFILE '.trae\skills') },
             @{ Key = 'trae-cn';             Label = 'Trae CN（国内版）';       Path = (Join-Path $env:USERPROFILE '.trae-cn\skills') },
             @{ Key = 'copilot';             Label = 'GitHub Copilot';          Path = (Join-Path $env:USERPROFILE '.copilot\skills') },
-            @{ Key = 'workbuddy';           Label = 'WorkBuddy（国内版）';      Path = (Join-Path $env:USERPROFILE '.workbuddy\skills') },
-            @{ Key = 'codebuddy';            Label = 'CodeBuddy Code / WorkBuddy AI（国际版）'; Path = (Join-Path $env:USERPROFILE '.codebuddy\skills') },
+            @{ Key = 'workbuddy';           Label = 'WorkBuddy（国内版）';      Path = (Join-Path $env:USERPROFILE '.workbuddy\skills'); ProbePath = (Join-Path $env:USERPROFILE '.workbuddy') },
+            @{ Key = 'codebuddy';            Label = 'CodeBuddy Code / WorkBuddy AI（国际版）'; Path = (Join-Path $env:USERPROFILE '.codebuddy\skills'); ProbePath = (Join-Path $env:USERPROFILE '.codebuddy') },
             @{ Key = 'gemini-cli';          Label = 'Gemini CLI';              Path = (Join-Path $env:USERPROFILE '.gemini\skills') },
             @{ Key = 'opencode';            Label = 'OpenCode';                Path = (Join-Path $env:USERPROFILE '.config\opencode\skills') },
             @{ Key = 'qoder';               Label = 'Qoder';                   Path = (Join-Path $env:USERPROFILE '.qoder\skills') },
@@ -736,11 +736,17 @@ function Invoke-SetupFlow {
         $detectedFlags = @()
         for ($i = 0; $i -lt $detectors.Count; $i++) {
             $d = $detectors[$i]
-            $exists = Test-Path $d.Path
-            $mark = if ($exists) { '✅ 已检测到' } else { '　未找到　' }
-            $row = ("  [{0}]  {1}  {2}" -f ($i + 1), (Pad-Width $d.Label 42), $mark)
-            if ($exists) { Show-BoxRowColor @(@{ T = ('  [' + ($i + 1) + ']  '); C = 'primary'; B = $true }, @{ T = (Pad-Width $d.Label 42); C = 'text' }, @{ T = '✅ 已检测到'; C = 'ok'; B = $true }) }
-            else { Show-BoxRow $row dim }
+            $probe = if ($d.ProbePath) { $d.ProbePath } else { $d.Path }
+            $exists = Test-Path $probe
+            $dirExists = Test-Path $d.Path
+            $idx = $i + 1
+            if ($exists -and $dirExists) {
+                Show-BoxRowColor @(@{ T = ('  [' + $idx + ']  '); C = 'primary'; B = $true }, @{ T = (Pad-Width $d.Label 42); C = 'text' }, @{ T = '✅ 已检测到'; C = 'ok'; B = $true })
+            } elseif ($exists) {
+                Show-BoxRowColor @(@{ T = ('  [' + $idx + ']  '); C = 'primary'; B = $true }, @{ T = (Pad-Width $d.Label 42); C = 'text' }, @{ T = '✅ 已安装·技能根待创建'; C = 'warn'; B = $true })
+            } else {
+                Show-BoxRow (("  [{0}]  {1}  {2}" -f $idx, (Pad-Width $d.Label 42), '　未找到　')) dim
+            }
             $choices += [pscustomobject]@{ Key = $d.Key; Path = $d.Path }
             $detectedFlags += $exists
         }
