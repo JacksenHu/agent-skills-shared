@@ -1,7 +1,7 @@
 # Code Index — 代码地图（自动生成，请勿手改）
 
-- 生成时间：2026-09-20 00:20（手工增量校正：剔除本地非仓库文件）
-- 源码文件：20 个，合计约 4322 行
+- 生成时间：2026-09-20 01:15（手工增量校正：generate-router-skill.ps1 199→186 行）
+- 源码文件：20 个，合计约 4309 行
 - 用法：先在本文件定位目标，再精读对应源码；不要全仓遍历。增删/移动文件后用 build_index.py 重建。
 
 ## 目录结构
@@ -36,7 +36,7 @@ scripts/
 - `add-agent.ps1` (151 行) — requires -Version 5.1  <!-- scripts/add-agent.ps1 -->
 - `check-project-updates.ps1` (250 行) — requires -Version 5.1  <!-- scripts/check-project-updates.ps1 -->
 - `check-updates.ps1` (220 行) — requires -Version 5.1  <!-- scripts/check-updates.ps1 -->
-- `generate-router-skill.ps1` (199 行) — requires -Version 5.1  <!-- scripts/generate-router-skill.ps1 -->
+- `generate-router-skill.ps1` (186 行) — requires -Version 5.1  <!-- scripts/generate-router-skill.ps1 -->
 - `install-skill.ps1` (272 行) — requires -Version 5.1  <!-- scripts/install-skill.ps1 -->
 - `merge-agent-roots.ps1` (164 行) — requires -Version 5.1  <!-- scripts/merge-agent-roots.ps1 -->
 - `remove-agent.ps1` (73 行) — requires -Version 5.1  <!-- scripts/remove-agent.ps1 -->

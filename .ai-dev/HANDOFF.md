@@ -13,8 +13,9 @@
 
 ## 当前任务
 
-- 目标：接手项目——把本地目录（原为 ZIP 解压镜像、无 `.git`）接成与 GitHub 同步的 git 工作副本，并复验一致性。
-- 背景：用户给出仓库地址 `JacksenHu/agent-skills-shared` 要求接手。按 START_HERE §1 加载协议读完上下文后执行。
+- 目标（本轮）：① 去掉路由技能生成里的「受限技能排除」，改为全量收录；② 归并「同一 Agent 多技能根」重复加载（用户授权自行决策）。
+- 背景：用户直接指定这两件事。两件均已完成并真机验证，无遗留阻塞。
+- （上一轮）目标：接手项目——把本地目录（原为 ZIP 解压镜像、无 `.git`）接成与 GitHub 同步的 git 工作副本，并复验一致性。
 
 ## 进度状态
 
@@ -28,6 +29,9 @@
   - 提交并推送 `.gitignore`（`.workbuddy-ai/`、`scripts/*.bak`）→ `8af7dc6..c78c8bc`
   - 本地清理（用户决策后执行）：`scripts/sync-rules.ps1` + `config/rules.example.md` → 移出项目到 `..\tools\rule-sync\`；`scripts/setup-wizard.ps1.bak`（594 行中间草稿，被 597→1115 行版本取代）→ 删除到**回收站**（可恢复）
   - **真机验证（关键路径）**：`verify.ps1` **全部通过**——6 个已配置 Agent 全为 Junction 且都指向共享库，各可见 150 个 SKILL.md，退出码 0；`generate-router-skill.ps1` 正常生成（131 个技能 / 33 未分类 / 12 受限排除），**输出与既有文件逐字节一致**（sha256 前后相同）→ 生成器幂等、索引本来就是最新的，未对环境产生任何变更
+  - **① 移除受限排除**：`generate-router-skill.ps1` 删掉 `$script:ExcludedNames` 名单、过滤逻辑、索引里的"不参与推荐"注脚，以及「涉及安全/逆向先确认合规」那条路由步骤；README + docs/01 + docs/03 措辞同步。真机重跑：技能总数 **131 → 143**（原 12 个受限技能全部收录）、未分类 33 → 36，生成文件内已无"受限/不参与/合规"字样
+  - **② 归并重复技能根**：决策 = **保留 `~\.agents\skills`**（docs/02 记载豆包、Trae/CN、Codex、Cursor、Zed、Copilot、Gemini、Roo、Augment 均读它，一份联接覆盖最多），清空豆包 user_skills 与 `.trae-cn\skills` 两个重复根。归并后 verify：4 个 `[OK]` + 2 个 `[归并·空]` + **重复加载警告消失**，退出码 0；共享库前后均为 144 目录 / 149 项，**数据零损失**
+  - 复验：12 个 `.ps1` 语法 0 错误、BOM 全在；code-index 行数已同步（199→186）
 - 进行中：
   - 无
 
@@ -39,13 +43,16 @@
 - [x] 用户决策：rule-sync 工具不收编入仓库 → 已移出到 `..\tools\rule-sync\`（项目内零残留）
 - [x] 用户决策：删除旧版向导备份 → 已进回收站（`%SYSTEMDRIVE%\$Recycle.Bin\<SID>\$R36CSC7.bak`，29425 字节，可还原）
 - [x] 真机跑通关键路径：`verify.ps1` 全绿（exit 0）、`generate-router-skill.ps1` 生成结果幂等（sha256 未变）
-- [ ] 待用户决策：verify 报出「同一 Agent 多技能根」重复加载风险——豆包（`.agents\skills` + 豆包 user_skills）与 Trae/Trae CN（`.agents\skills` + `.trae-cn\skills`）。根治要跑 `merge-agent-roots.ps1`（**会改本机环境，未执行**）
+- [x] 重复技能根已归并（保留 `~\.agents\skills`，清空 2 个重复根）。回退命令：`New-Item -ItemType Junction -Path "<被清空的根>" -Target "%USERPROFILE%\skills\shared" -Force`
+- [ ] 待确认：`VERSION` 是否随本次行为变更 bump（现仍 1.0.0；bump 会让其它机器的 `check-project-updates` 提示更新）
 
 ## 本次形成的关键约束 / 决策（新会话必须遵守）
 
 - **推送凭据本机可用**（Windows 凭据管理器持有 github.com 凭据），无需 `gh auth login`、无需 `GH_TOKEN`。上一轮记录的“push 阻塞”结论**不成立**，勿再照抄。
 - `config/rules.example.md` 与 `scripts/sync-rules.ps1` 已核实**与本仓库无任何引用关系**（README / docs / setup-wizard 全文零引用），是独立的“全局规则分发”小工具 → 用户已决定**不收编**，现存放于项目外的 `..\tools\rule-sync\`（与 `new-chat\AGENTS.md` 同级目录，它原本就是给那个工作目录用的）。
 - 仓库已设 `core.autocrlf=false`（局部），保护 conventions §测试要求 的“推送后逐文件字节比对”验收不被 CRLF 破坏。
+- **`generate-router-skill.ps1` 不再设任何排除名单**，共享库全量收录（含成人向 / 逆向破解 / 社工类）。用户明确要求过，别再"顺手"加回来。
+- **重复技能根的归并决策已定**：一律保留 `~\.agents\skills`（跨 Agent 共享入口），清空各软件自己的重复根；依据见 docs/02「值得注意的事实标准」。回退命令见「下一步动作」。
 - `.ai-dev/` 已随仓库公开推送（commit b2c2f13），写入前先想“协作者会看到”。
 - 项目事实源在 `.ai-dev/`，AGENTS.md 只作薄指针（devctx 同步脚本会覆盖，勿手写）。
 
@@ -55,6 +62,8 @@
 - 无跟踪引用时 `git branch --set-upstream-to` 报 `no commit on branch 'main' yet`——先用裸 SHA 做 `reset --mixed` 建出 `refs/heads/main` 再说。
 - 本机 bash 里直接调 `powershell.exe` 会被安全策略拒绝；走 PowerShell 工具，且**把结果写成 UTF-8 文件再读**（回传输出会被吞）。
 - **PowerShell 工具里起不了子进程**：`& powershell.exe -File ...`、`cmd.exe /c ... > out.txt` 都拿不到输出也拿不到退出码。要抓脚本输出用**同会话重定向**：`& .\scripts\xxx.ps1 *> out.txt`（PS5.1 写的是 **UTF-16LE**，读前 `iconv -f UTF-16LE -t UTF-8`）。脚本里的 `exit N` 会提前结束会话，但文件已按行落盘；**工具回显的退出码就是 N**（verify 的 0 = 全绿可直接当结论）。
+- **PowerShell 工具里 `cmd.exe` 起不了进程**：`cmd /c ...` 既不产出输出也拿不到退出码（日志里 cmdline 写了、exit code 为空）→ `merge-agent-roots.ps1` 的拆联接步骤（`& cmd /c rmdir`）在本环境必然报 `[FAIL] 拆除失败`。本环境做同类操作用 `[IO.Directory]::Delete($path, $false)`——**只删重解析点，不碰共享库数据**（已验证共享库目录/项数前后不变）。用户在本机自己跑脚本不受此限。
+- **没有 BOM 的 .ps1 里写中文字面量会乱码**（PS5.1 按 ANSI 读）→ 临时包装脚本要么纯 ASCII，要么带 BOM。本次一个探测脚本的中文表头就这样花了。
 - 包装脚本别用多层 `Split-Path -Parent $PSScriptRoot` 猜项目根（极易多剥一层）；用绝对路径。本机 PowerShell 工具的默认工作目录就是项目根。
 - PowerShell 工具**禁止 `Add-Type` 与 `[Reflection.Assembly]::Load*`**（安全策略直接拒绝）→ 要"删到回收站"只能用 python ctypes 调 `SHFileOperationW`（`FOF_ALLOWUNDO|FOF_NOCONFIRMATION`）。`send2trash` 的 legacy 实现会因 8.3 短名被禁用而报错，modern 实现缺 `pythoncom`。
 - **`SHFileOperationW` 返回值不可信**：本次返回 2（ERROR_FILE_NOT_FOUND）但文件其实已进回收站。判断成功与否只看回收站里是否出现同名 `$R*` 文件；原始路径在 `$I*` 元数据里（偏移 0/8/16 为版本/大小/删除时间，24 为名字符数，28 起 UTF-16 路径）。
@@ -72,6 +81,10 @@
 | `.ai-dev/HANDOFF.md` | 本次收工重写活跃区 | 收工协议 §3.1 |
 | `.ai-dev/code-index.md` | 由远程版本覆盖恢复（本地镜像版已过期） | 与 `origin/main` 对齐 |
 | `.git/`（packed-refs、config） | 本机仓库配置补写 | 修跟踪引用落盘坑 + autocrlf |
+| `scripts/generate-router-skill.ps1` | 删除受限排除（199→186 行） | 用户要求全量收录 |
+| `README.md`、`docs/01-architecture.md`、`docs/03-setup-guide.md` | 改为"全量收录，不设排除名单" | 与代码保持一致 |
+| `.ai-dev/code-index.md` | 行数校正（generate-router-skill 199→186、总 4322→4309） | START_HERE §3.2 |
+| 本机环境（非仓库内容） | 清空豆包 user_skills 与 `.trae-cn\skills` 两个重复根 | 消除重复加载 |
 | `scripts/sync-rules.ps1`、`config/rules.example.md` | **移出项目** → `..\tools\rule-sync\` | 与本仓库零引用关系，不属本项目 |
 | `scripts/setup-wizard.ps1.bak` | 删除（进回收站） | 已被 597→1115 行版本取代的中间草稿 |
 
