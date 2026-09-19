@@ -94,7 +94,7 @@ C:\Agent\skills ──(Junction)──▶ C:\Shared\skills
 | `verify.ps1` | 验证所有 Agent 联接与技能可见性 |
 | `add-agent.ps1` / `remove-agent.ps1` | 接入 / 移除单个 Agent（数据保留在共享库） |
 | `install-skill.ps1` | 从 **GitHub / skills.sh 仓库链接**一键安装技能（自动生成中文简介 `_meta.json`） |
-| `generate-router-skill.ps1` | **生成/刷新总路由技能 skill-router**：扫描共享库按 9 大分类生成 `router-guide\SKILL.md`，在任何 Agent 中触发即可按情境推荐共享库技能（受限类技能不参与推荐） |
+| `generate-router-skill.ps1` | **生成/刷新总路由技能 skill-router**：扫描共享库按 9 大分类生成 `router-guide\SKILL.md`，在任何 Agent 中触发即可按情境推荐共享库技能（**全量收录，不设排除名单**） |
 | `scan-agents.ps1` | **扫描各 Agent 已安装技能**（发现未进共享库的技能，标注 已接入/已共享/冲突/独有） |
 
 **技能管理能力**（向导 [3] 子菜单）：
@@ -103,7 +103,7 @@ C:\Agent\skills ──(Junction)──▶ C:\Shared\skills
 - **[b] 从仓库链接安装**：GitHub 仓库或 skills.sh 技能市场，zip 下载无需 git，自动识别单技能/多技能结构，安装后自动生成中文简介元数据；
 - **[c] 移除**：双重确认（确认 + 再次输入技能名），防止误删；
 - **[d] 按分类浏览**：先列分类清单（含数量），输入编号查看该类技能；
-- **[e] 生成/刷新总路由技能（skill-router）**：扫描共享库按 9 大分类生成 `router-guide\SKILL.md`，在任何 Agent 中触发它即可按情境推荐共享库技能（受限类技能不参与推荐）；
+- **[e] 生成/刷新总路由技能（skill-router）**：扫描共享库按 9 大分类生成 `router-guide\SKILL.md`，在任何 Agent 中触发它即可按情境推荐共享库技能（**全量收录，不设排除名单**）；
 - **主菜单 [5] 扫描**：逐个检查配置中的 Agent 目录，标注每个技能的状态（✅ 已接入共享库 / 已共享内容一致 / 冲突 / 独有 / ✗ 目录不存在），发现"独有"技能后可迁移进共享库。
 
 自动分类规则：优先读 SKILL.md frontmatter 的 `category` / `type` / `tags` 字段，其次按「技能名 + 简介」匹配内置关键词词典，都匹配不到归「未分类」。可在 `setup-wizard.ps1` 顶部调整词典。

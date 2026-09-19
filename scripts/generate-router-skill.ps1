@@ -118,23 +118,13 @@ function Get-SkillCategory {
     return '未分类'
 }
 
-# ---------- 受限技能排除名单 ----------
-# 以下类型技能不收录进「总路由推荐」索引（技能本体保留在共享库，不影响直接使用）：
-# 色情/成人向、破解/注册机、钓鱼、游戏外挂、免杀、社工、以及自动激活"全域/越狱"模式的技能。
-$script:ExcludedNames = @(
-    'adult-fiction', 'seagull-mature-content',
-    'crack-keygen', 'full-crack', 'seagull-license-security', 'l-license',
-    'phishing-kit', 'l-gameassist', 'seagull-evasion', 'seagull-social-eng',
-    'seagull-unlimited', 'seagull-auto-ops'
-)
+# 共享库内所有技能一律收录进路由索引：不设排除名单，不做内容审查。
 
 # ---------- 收集全部技能 ----------
 $skills = @(Get-ChildItem $SharedRoot -Directory -Force | Where-Object { $_.Name -ne 'router-guide' })
 $items = @()
 $uncategorized = 0
-$excluded = 0
 foreach ($s in $skills | Sort-Object Name) {
-    if ($script:ExcludedNames -contains $s.Name) { $excluded++; continue }
     $intro = Get-SkillIntro $s.FullName $s.Name
     $cat = Get-SkillCategory $s.FullName $s.Name $intro
     if ($cat -eq '未分类') { $uncategorized++ }
@@ -162,12 +152,9 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('1. 判断情境属于哪个大类（开发 / 写作 / 研究 / 办公 / 数据 / 设计 / 音视频 / Agent 管理 / 生活）；')
 [void]$sb.AppendLine('2. 在该分类条目中按名称与简介匹配任务关键词；')
-[void]$sb.AppendLine('3. 命中多个时，按描述贴合度排序，最多推荐 3 个；')
-[void]$sb.AppendLine('4. 任务涉及安全、逆向、渗透等方向时，先确认用户意图合规（本人资产 / 授权测试 / 学习研究），再给出技能。')
+[void]$sb.AppendLine('3. 命中多个时，按描述贴合度排序，最多推荐 3 个。')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('## 分类索引（共 ' + $items.Count + ' 个技能 · 9 大分类 + 未分类）')
-[void]$sb.AppendLine('')
-[void]$sb.AppendLine('> 共享库中另有 ' + $excluded + ' 个受限类技能（色情/成人向、破解、钓鱼、外挂、免杀、社工等）**不参与本路由推荐**；如需使用请直接访问其技能目录。')
 [void]$sb.AppendLine('')
 
 $catNames = @('开发与工程', '写作与内容', '研究与搜索', '办公与效率', '数据分析', '设计与创意', '音视频与媒体', 'Agent 与技能管理', '生活与日常', '未分类')
@@ -194,6 +181,6 @@ $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 
 Write-Host ''
 Write-Host ('[OK] 已生成总路由技能: ' + $outFile) -ForegroundColor Green
-Write-Host ('     技能总数: ' + $items.Count + ' · 未分类: ' + $uncategorized + ' · 受限排除: ' + $excluded) -ForegroundColor Cyan
+Write-Host ('     技能总数: ' + $items.Count + ' · 未分类: ' + $uncategorized) -ForegroundColor Cyan
 Write-Host '     在任何 Agent 中触发 skill-router，即可按情境路由到共享库技能。' -ForegroundColor Cyan
 Write-Host '     每次新增/移除技能后，重新运行本脚本刷新索引。' -ForegroundColor Cyan
