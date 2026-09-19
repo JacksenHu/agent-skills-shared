@@ -4,3 +4,9 @@ config/agents.json
 # 运行产生的临时/报告文件
 *.log
 .reports/
+
+# AI 工作区（devctx 上下文 / 记忆 / 临时快照），本机私有
+.workbuddy-ai/
+
+# 脚本备份文件（手工留存的旧版本，不入库）
+scripts/*.bak
