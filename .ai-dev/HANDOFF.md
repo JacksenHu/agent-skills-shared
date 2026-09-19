@@ -51,6 +51,7 @@
 - .ps1 脚本必须 UTF-8 带 BOM（PS5.1 中文乱码）；本 .ai-dev 的 md 由现代工具读取，UTF-8 即可。
 - git stderr 输出会被 PowerShell 显示为错误（NativeCommandError），判断以退出码为准。
 - 本环境 curl 走 schannel，报 `CRYPT_E_NO_REVOCATION_CHECK`；`git clone` 不受影响（全局已设 sslverify=false + schannelcheckrevoke=false）。
+- `git push` 报成功、`git ls-remote` 能看到新提交，但 `git status` 一直显示 `[ahead 1]`：本机 `.git/refs/remotes/origin/` 目录缺失，fetch/update-ref 都无法写入跟踪引用（`update-ref` 静默 exit 0 却不落盘，甚至会清掉刚建的目录）。**排查一律以 `git ls-remote origin refs/heads/main` 为准**；要修本地显示，直接改 `.git/packed-refs` 里 `refs/remotes/origin/main` 的哈希（`git update-ref` 在本机无效）。
 
 ## 本次改动文件清单
 
