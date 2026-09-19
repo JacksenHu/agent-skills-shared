@@ -1030,6 +1030,7 @@ function Show-MainMenu {
                     Show-BoxRowColor @(@{ T = '  [b] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '仓库安装' 14); C = 'white'; B = $true }, @{ T = '从 GitHub / skills.sh 链接安装'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [c] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '移除技能' 14); C = 'white'; B = $true }, @{ T = '从共享库删除（影响所有 Agent）'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [d] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '分类浏览' 14); C = 'white'; B = $true }, @{ T = '先选分类，再查看该类技能'; C = 'dim' })
+                    Show-BoxRowColor @(@{ T = '  [e] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '总路由技能' 14); C = 'white'; B = $true }, @{ T = '生成/刷新 skill-router（按情境推荐技能）'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [q] '; C = 'gold'; B = $true }, @{ T = (Pad-Width '返回主菜单' 14); C = 'white'; B = $true })
                     Show-BoxBottom primary
                     Write-C ("? 请选择  ") -C text -NoNewline
@@ -1041,6 +1042,16 @@ function Show-MainMenu {
                         'b' { Install-SkillInteractive }
                         'c' { Remove-SkillInteractive; Write-C '' }
                         'd' { Show-CategoryBrowse; Write-C '' }
+                        'e' {
+                            $router = Join-Path $PSScriptRoot 'generate-router-skill.ps1'
+                            if (Test-Path $router) {
+                                Write-C '正在扫描共享库并生成总路由技能…' -C dim
+                                & powershell -NoProfile -ExecutionPolicy Bypass -File $router
+                            } else {
+                                Write-Warn '缺少 generate-router-skill.ps1，请更新项目后重试。'
+                            }
+                            Write-C ''
+                        }
                         default { Write-Err '无效选项。' }
                     }
                 }
