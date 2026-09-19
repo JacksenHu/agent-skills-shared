@@ -245,11 +245,23 @@ notepad config\agents.json
 > ⚠️ 脚本会自动把各 Agent 目录里**已有的技能迁移**进共享库（同名冲突会保留原文件并生成报告，不会覆盖）。
 > 脚本只处理你写入 `agents.json` 的路径，**不会**触碰 Doubao 的 `.skills` 系统技能目录。
 
+## 本项目使用 devctx（跨 IDE 统一上下文）
+
+本仓库已用 [devctx](https://github.com/JacksenHu/devctx)（跨 IDE 统一上下文技能，v0.4.0 · MIT）接入：
+
+- **项目认知外置在 `.ai-dev/`**：项目概况（project-brief）、架构（architecture）、开发约定（conventions）、术语表（glossary）、永久教训（lessons）、代码索引（code-index）、工作交接（HANDOFF）与 ADR 决策记录；
+- **根目录 `AGENTS.md` 是薄指针**：只有十几行“自动去读 `.ai-dev/`”的引导，规则不复制多份，由 devctx 同步脚本维护；
+- **效果**：任何 IDE / 模型（Cursor、Claude Code、Windsurf、Trae、Codex、豆包等）新开会话，自动读 `START_HERE.md` + `HANDOFF.md` 恢复现场，不重读全仓、不重复烧 token、不重复踩旧坑。
+
+devctx 仓库：<https://github.com/JacksenHu/devctx>
+
 ## 目录结构
 
 ```
 agent-skills-shared/
 ├── README.md                      # 本文件（总览）
+├── AGENTS.md                      # devctx 薄指针：引导各工具读取 .ai-dev/（勿手写）
+├── .ai-dev/                       # devctx 统一上下文（项目概况/架构/约定/术语/教训/交接/代码索引）
 ├── VERSION                        # 项目版本号（供 check-project-updates.ps1 对比远程）
 ├── docs/
 │   ├── 01-architecture.md         # 方案详解：机制、原理、对比
