@@ -1,7 +1,7 @@
 # Code Index — 代码地图（自动生成，请勿手改）
 
-- 生成时间：2026-09-19 23:53
-- 源码文件：21 个，合计约 4433 行
+- 生成时间：2026-09-20 00:20（手工增量校正：剔除本地非仓库文件）
+- 源码文件：20 个，合计约 4322 行
 - 用法：先在本文件定位目标，再精读对应源码；不要全仓遍历。增删/移动文件后用 build_index.py 重建。
 
 ## 目录结构
@@ -19,10 +19,10 @@ scripts/
 
 ### (root)
 
-- `README.md` (331 行) — Agent Skills 共享方案（统一目录 + 目录联接）  <!-- README.md -->
+- `README.md` (343 行) — Agent Skills 共享方案（统一目录 + 目录联接）  <!-- README.md -->
 ### config
 
-- `rules.example.md` (9 行) — 通用协作规则（示例）  <!-- config/rules.example.md -->
+- `agents.example.json` (29 行) — Agent 路径配置模板（24 项预设，含 Marvis 占位）  <!-- config/agents.example.json -->
 ### docs
 
 - `01-architecture.md` (131 行) — 01 · 方案详解（架构与原理）  <!-- docs/01-architecture.md -->
@@ -43,7 +43,6 @@ scripts/
 - `scan-agents.ps1` (158 行) — requires -Version 5.1  <!-- scripts/scan-agents.ps1 -->
 - `setup-wizard.ps1` (1115 行) — requires -Version 5.1  <!-- scripts/setup-wizard.ps1 -->
 - `setup.ps1` (173 行) — requires -Version 5.1  <!-- scripts/setup.ps1 -->
-- `sync-rules.ps1` (143 行) — requires -Version 5.1  <!-- scripts/sync-rules.ps1 -->
 - `verify.ps1` (107 行) — requires -Version 5.1  <!-- scripts/verify.ps1 -->
 ### scripts/lib
 
