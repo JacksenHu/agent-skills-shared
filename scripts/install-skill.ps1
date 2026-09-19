@@ -47,31 +47,8 @@ function Write-Ok   { param([string]$Msg) Write-Host "[OK] $Msg" -ForegroundColo
 function Write-Warn { param([string]$Msg) Write-Host "[!] $Msg" -ForegroundColor Yellow }
 function Write-Err  { param([string]$Msg) Write-Host "[X] $Msg" -ForegroundColor Red }
 
-# ---------- 中文简介（免费翻译接口，失败回退原文） ----------
-function ConvertTo-DescriptionZh {
-    param([string]$Description)
-    if ([string]::IsNullOrWhiteSpace($Description)) { return '' }
-    # 已含中文则无需翻译
-    if ($Description -match '[\u4e00-\u9fff]') { return $Description.Trim() }
-    if ($Description.Length -gt 800) { $Description = $Description.Substring(0, 800) }
-    $q = [uri]::EscapeDataString($Description)
-    # 1) MyMemory（免费，无需 key，国内可达）
-    try {
-        $uri = "https://api.mymemory.translated.net/get?q=$q&langpair=en|zh-CN"
-        $r = Invoke-RestMethod -Uri $uri -TimeoutSec 10 -UseBasicParsing
-        $zh = [string]$r.responseData.translatedText
-        if ($zh -and $zh -ne 'NO QUERY SPECIFIED' -and $zh -notmatch 'MYMEMORY WARNING') { return $zh.Trim() }
-    } catch { }
-    # 2) Google gtx（部分地区不可达，作为兜底）
-    try {
-        $uri = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=$q"
-        $r = Invoke-RestMethod -Uri $uri -TimeoutSec 8 -UseBasicParsing
-        $zh = ''
-        foreach ($seg in @($r[0])) { $zh += [string]$seg[0] }
-        if ($zh) { return $zh.Trim() }
-    } catch { }
-    return $Description.Trim()
-}
+# ---------- 中文简介 + frontmatter 解析：走公共库（与 translate-skill-intro.ps1 共用） ----------
+. (Join-Path $PSScriptRoot 'lib\translate.ps1')
 
 # 写 _meta.json：名称 / 简介 / 中文简介 / 来源 / 版本基准（branch + commitSha）/ 时间
 # commitSha 为安装时仓库默认分支最新提交，供 check-updates.ps1 检测升级用
@@ -90,21 +67,7 @@ function Write-SkillMeta {
     $meta | ConvertTo-Json -Depth 3 | Out-File -FilePath (Join-Path $Dest '_meta.json') -Encoding UTF8
 }
 
-function Read-SkillFrontmatter {
-    param([string]$SkillMdPath)
-    $text = Get-Content $SkillMdPath -Raw -Encoding UTF8
-    $m = [regex]::Match($text, '(?s)^---\s*\r?\n(.*?)\r?\n---')
-    $meta = [ordered]@{}
-    if ($m.Success) {
-        foreach ($line in ($m.Groups[1].Value -split "`r?`n")) {
-            $kv = [regex]::Match($line, '^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*?)\s*$')
-            if ($kv.Success) {
-                $meta[$kv.Groups[1].Value] = $kv.Groups[2].Value.Trim().Trim('"').Trim("'")
-            }
-        }
-    }
-    return $meta
-}
+# Read-SkillFrontmatter 由 scripts\lib\translate.ps1 提供（支持跨行 / 折叠块）
 
 # ---------- 解析仓库链接 ----------
 # 支持：github.com/owner/repo、owner/repo、skills.sh/s/owner/repo[/skill-name]

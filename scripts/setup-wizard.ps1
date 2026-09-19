@@ -7,7 +7,7 @@
   全程交互，无需手写 JSON。主菜单：
     [1] 快速搭建 —— 配置 Agent 并建立共享联接（自动迁移已有技能、智能去重）
     [2] 验证联接 —— 检查所有 Agent 的技能可见性
-    [3] 技能管理 —— 分类清单 / GitHub、skills.sh 仓库安装 / 移除 / 分类浏览
+    [3] 技能管理 —— 分类清单 / GitHub、skills.sh 仓库安装 / 移除 / 分类浏览 / 技能介绍翻译
     [4] 接入 / 移除 Agent
     [5] 扫描已装技能 —— 发现各 Agent 中未进共享库的技能
     [6] 检查更新 —— 技能版本更新 / 项目（工具）版本更新
@@ -921,6 +921,7 @@ function Show-Help {
     Show-BoxRow '归并多技能根  .\scripts\merge-agent-roots.ps1  （消除豆包/Trae 多根重复加载）' text
     Show-BoxRow '安装技能（仓库链接）.\scripts\install-skill.ps1 -RepoUrl <仓库地址>' text
     Show-BoxRow '安装技能（skills.sh）.\scripts\install-skill.ps1 -RepoUrl <skills 链接>' text
+    Show-BoxRow '技能介绍翻译  .\scripts\translate-skill-intro.ps1  （英文简介译成中文，写入 _meta.json）' text
     Show-BoxBlank
     Show-BoxRow '提示：' gold
     Show-BoxRow '- 迁移/去重/冲突策略见 setup.ps1 输出与 docs/05' dim
@@ -979,7 +980,7 @@ function Show-MainMenu {
         Show-BoxRowColor @(
             @{ T = '  [3] '; C = 'accent'; B = $true },
             @{ T = (Pad-Width '技能管理' 18); C = 'white'; B = $true },
-            @{ T = '分类清单 · GitHub / skills.sh 仓库安装 · 移除'; C = 'dim' }
+            @{ T = '分类清单 · 仓库安装 · 移除 · 技能介绍翻译'; C = 'dim' }
         )
         Show-BoxRowColor @(
             @{ T = '  [4] '; C = 'accent'; B = $true },
@@ -1031,6 +1032,7 @@ function Show-MainMenu {
                     Show-BoxRowColor @(@{ T = '  [c] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '移除技能' 14); C = 'white'; B = $true }, @{ T = '从共享库删除（影响所有 Agent）'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [d] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '分类浏览' 14); C = 'white'; B = $true }, @{ T = '先选分类，再查看该类技能'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [e] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '总路由技能' 14); C = 'white'; B = $true }, @{ T = '生成/刷新 skill-router（按情境推荐技能）'; C = 'dim' })
+                    Show-BoxRowColor @(@{ T = '  [f] '; C = 'accent'; B = $true }, @{ T = (Pad-Width '技能介绍翻译' 14); C = 'white'; B = $true }, @{ T = '英文简介译成中文（写入 _meta.json）'; C = 'dim' })
                     Show-BoxRowColor @(@{ T = '  [q] '; C = 'gold'; B = $true }, @{ T = (Pad-Width '返回主菜单' 14); C = 'white'; B = $true })
                     Show-BoxBottom primary
                     Write-C ("? 请选择  ") -C text -NoNewline
@@ -1049,6 +1051,16 @@ function Show-MainMenu {
                                 & powershell -NoProfile -ExecutionPolicy Bypass -File $router
                             } else {
                                 Write-Warn '缺少 generate-router-skill.ps1，请更新项目后重试。'
+                            }
+                            Write-C ''
+                        }
+                        'f' {
+                            $translateScript = Join-Path $PSScriptRoot 'translate-skill-intro.ps1'
+                            if (Test-Path $translateScript) {
+                                Write-C '正在扫描共享库并翻译英文技能简介（已有中文的会自动跳过）…' -C dim
+                                & $translateScript -SharedRoot (Get-SharedRoot)
+                            } else {
+                                Write-Warn '缺少 translate-skill-intro.ps1，请更新项目后重试。'
                             }
                             Write-C ''
                         }
