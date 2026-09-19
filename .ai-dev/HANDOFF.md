@@ -58,7 +58,8 @@
 
 ## 陷阱：试过且走不通的路（避免重复浪费）
 
-- **本机 `refs/remotes/origin/` 写不进**：`fetch` 打印 `[new branch] main -> origin/main`、`for-each-ref` 却是空；`push` 报成功但 `status` 永远 `[ahead 1]`。**一律以 `git ls-remote origin refs/heads/main` 为准**；要修本地显示就手写 `.git/packed-refs`（本次两次验证有效，`git update-ref` 无效）。初始对齐时 `reset --mixed` 只能用**裸 SHA**，用 `origin/main` 会报 unknown revision。
+- **本机 `refs/remotes/origin/` 写不进**：`fetch` 打印 `[new branch] main -> origin/main`、`for-each-ref` 却是空；`push` 报成功但 `status` 永远 `[ahead 1]`。**一律以 `git ls-remote origin refs/heads/main` 为准**；要修本地显示就手写 `.git/packed-refs`（本次三次验证有效，`git update-ref` 无效）。初始对齐时 `reset --mixed` 只能用**裸 SHA**，用 `origin/main` 会报 unknown revision。
+- 手写 `.git/packed-refs` 时**必须复制命令输出的完整 40 位 SHA**，不要凭 7 位前缀自己补全——补错会指向不存在的对象，症状是 `git status` 显示 `[gone]`（本次踩过）。写完必须校验：`git cat-file -e <sha>` + `git for-each-ref`。
 - 无跟踪引用时 `git branch --set-upstream-to` 报 `no commit on branch 'main' yet`——先用裸 SHA 做 `reset --mixed` 建出 `refs/heads/main` 再说。
 - 本机 bash 里直接调 `powershell.exe` 会被安全策略拒绝；走 PowerShell 工具，且**把结果写成 UTF-8 文件再读**（回传输出会被吞）。
 - **PowerShell 工具里起不了子进程**：`& powershell.exe -File ...`、`cmd.exe /c ... > out.txt` 都拿不到输出也拿不到退出码。要抓脚本输出用**同会话重定向**：`& .\scripts\xxx.ps1 *> out.txt`（PS5.1 写的是 **UTF-16LE**，读前 `iconv -f UTF-16LE -t UTF-8`）。脚本里的 `exit N` 会提前结束会话，但文件已按行落盘；**工具回显的退出码就是 N**（verify 的 0 = 全绿可直接当结论）。
