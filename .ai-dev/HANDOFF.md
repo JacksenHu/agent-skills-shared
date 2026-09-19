@@ -27,6 +27,7 @@
   - 复验：13 个 `.ps1`（12 仓库 + sync-rules.ps1）PowerShell Parser 0 错误，全部 UTF-8 带 BOM；行数与 code-index 完全吻合
   - 提交并推送 `.gitignore`（`.workbuddy-ai/`、`scripts/*.bak`）→ `8af7dc6..c78c8bc`
   - 本地清理（用户决策后执行）：`scripts/sync-rules.ps1` + `config/rules.example.md` → 移出项目到 `..\tools\rule-sync\`；`scripts/setup-wizard.ps1.bak`（594 行中间草稿，被 597→1115 行版本取代）→ 删除到**回收站**（可恢复）
+  - **真机验证（关键路径）**：`verify.ps1` **全部通过**——6 个已配置 Agent 全为 Junction 且都指向共享库，各可见 150 个 SKILL.md，退出码 0；`generate-router-skill.ps1` 正常生成（131 个技能 / 33 未分类 / 12 受限排除），**输出与既有文件逐字节一致**（sha256 前后相同）→ 生成器幂等、索引本来就是最新的，未对环境产生任何变更
 - 进行中：
   - 无
 
@@ -37,7 +38,8 @@
 - [x] 推送 `.gitignore` 补充忽略规则（`c78c8bc`）
 - [x] 用户决策：rule-sync 工具不收编入仓库 → 已移出到 `..\tools\rule-sync\`（项目内零残留）
 - [x] 用户决策：删除旧版向导备份 → 已进回收站（`%SYSTEMDRIVE%\$Recycle.Bin\<SID>\$R36CSC7.bak`，29425 字节，可还原）
-- [ ] 真机跑通关键路径（需用户机器上已有 `config\agents.json`）
+- [x] 真机跑通关键路径：`verify.ps1` 全绿（exit 0）、`generate-router-skill.ps1` 生成结果幂等（sha256 未变）
+- [ ] 待用户决策：verify 报出「同一 Agent 多技能根」重复加载风险——豆包（`.agents\skills` + 豆包 user_skills）与 Trae/Trae CN（`.agents\skills` + `.trae-cn\skills`）。根治要跑 `merge-agent-roots.ps1`（**会改本机环境，未执行**）
 
 ## 本次形成的关键约束 / 决策（新会话必须遵守）
 
@@ -52,6 +54,8 @@
 - **本机 `refs/remotes/origin/` 写不进**：`fetch` 打印 `[new branch] main -> origin/main`、`for-each-ref` 却是空；`push` 报成功但 `status` 永远 `[ahead 1]`。**一律以 `git ls-remote origin refs/heads/main` 为准**；要修本地显示就手写 `.git/packed-refs`（本次两次验证有效，`git update-ref` 无效）。初始对齐时 `reset --mixed` 只能用**裸 SHA**，用 `origin/main` 会报 unknown revision。
 - 无跟踪引用时 `git branch --set-upstream-to` 报 `no commit on branch 'main' yet`——先用裸 SHA 做 `reset --mixed` 建出 `refs/heads/main` 再说。
 - 本机 bash 里直接调 `powershell.exe` 会被安全策略拒绝；走 PowerShell 工具，且**把结果写成 UTF-8 文件再读**（回传输出会被吞）。
+- **PowerShell 工具里起不了子进程**：`& powershell.exe -File ...`、`cmd.exe /c ... > out.txt` 都拿不到输出也拿不到退出码。要抓脚本输出用**同会话重定向**：`& .\scripts\xxx.ps1 *> out.txt`（PS5.1 写的是 **UTF-16LE**，读前 `iconv -f UTF-16LE -t UTF-8`）。脚本里的 `exit N` 会提前结束会话，但文件已按行落盘；**工具回显的退出码就是 N**（verify 的 0 = 全绿可直接当结论）。
+- 包装脚本别用多层 `Split-Path -Parent $PSScriptRoot` 猜项目根（极易多剥一层）；用绝对路径。本机 PowerShell 工具的默认工作目录就是项目根。
 - PowerShell 工具**禁止 `Add-Type` 与 `[Reflection.Assembly]::Load*`**（安全策略直接拒绝）→ 要"删到回收站"只能用 python ctypes 调 `SHFileOperationW`（`FOF_ALLOWUNDO|FOF_NOCONFIRMATION`）。`send2trash` 的 legacy 实现会因 8.3 短名被禁用而报错，modern 实现缺 `pythoncom`。
 - **`SHFileOperationW` 返回值不可信**：本次返回 2（ERROR_FILE_NOT_FOUND）但文件其实已进回收站。判断成功与否只看回收站里是否出现同名 `$R*` 文件；原始路径在 `$I*` 元数据里（偏移 0/8/16 为版本/大小/删除时间，24 为名字符数，28 起 UTF-16 路径）。
 - 删除前想留可恢复快照又不产生多余文件：`git hash-object -w <file>` 把内容写成本地 blob（不推送、不进 status），`git cat-file blob <sha>` 可还原。
@@ -79,5 +83,5 @@
 
 <!-- 已闭环的事项简要留痕；新内容写在本节最上方 -->
 
-- 2026-09-20 WorkBuddy AI（jacksen · DeepSeek-V4.1）：接手——本地目录由 ZIP 镜像重建为 git 工作副本并对齐 `origin/main`；逐文件 sha256 比对核实唯一偏差（2 份过期 .ai-dev 文档）并修正；13 个 .ps1 语法/BOM 复验 0 错误；`.gitignore` 补充忽略规则并推送（`c78c8bc`）。
+- 2026-09-20 WorkBuddy AI（jacksen · DeepSeek-V4.1）：接手——本地目录由 ZIP 镜像重建为 git 工作副本并对齐 `origin/main`；逐文件 sha256 比对核实唯一偏差（2 份过期 .ai-dev 文档）并修正；13 个 .ps1 语法/BOM 复验 0 错误；`.gitignore` 补充忽略规则并推送（`c78c8bc`）；按用户决策移出 rule-sync 工具、回收旧向导备份（`168ba05`）；**真机验证** `verify.ps1` 全绿 + `generate-router-skill.ps1` 输出幂等。
 - 2026-09-19 豆包（MainAgent）：接入 devctx 统一上下文——init 生成 `.ai-dev/` 全套（含 code-index 21 条目）+ 根 `AGENTS.md` 薄指针，L2 文档据实填写，`doctor.py --fix` 11 项全绿。已随 commit b2c2f13 推送。
